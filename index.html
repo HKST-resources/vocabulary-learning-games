@@ -11,7 +11,7 @@
 </head>
 <body>
 
-    <div id="bg-layer">
+    <div id="bg-container">
         <video id="bg-video" loop muted playsinline style="display:none;"></video>
     </div>
 
@@ -35,23 +35,23 @@
                 <label><input type="checkbox" id="textToggle" checked> 顯示標籤</label>
             </div>
             <div class="setting-item">
-    <label>背景選擇</label>
-    <select id="bgPicker">
-        <option value="white">純白背景</option>
-        <optgroup label="靜態圖片">
-            <option value="park.jpg">草地</option>
-            <option value="road.jpg">馬路</option>
-            <option value="room.jpg">房間</option>
-            <option value="game.jpg">遊戲</option>
-            <option value="yellow.jpg">黃色</option>
-            <option value="stripe.jpg">條紋</option>
-        </optgroup>
-        <optgroup label="動態背景">
-            <option value="nature.mp4">大自然 (影片)</option>
-            <option value="night sky.mp4">夜空 (影片)</option>
-        </optgroup>
-    </select>
-</div>
+                <label>背景選擇</label>
+                <select id="bgPicker">
+                    <option value="white">純白背景</option>
+                    <optgroup label="靜態圖片">
+                        <option value="park.jpg">草地</option>
+                        <option value="road.jpg">馬路</option>
+                        <option value="room.jpg">房間</option>
+                        <option value="game.jpg">遊戲</option>
+                        <option value="yellow.jpg">黃色</option>
+                        <option value="stripe.jpg">條紋</option>
+                    </optgroup>
+                    <optgroup label="動態背景">
+                        <option value="nature.mp4">大自然</option>
+                        <option value="night sky.mp4">夜空</option>
+                    </optgroup>
+                </select>
+            </div>
             <button class="export-btn" onclick="takeScreenshot()">📸 匯出練習結果</button>
         </div>
     </nav>
