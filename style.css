@@ -10,38 +10,58 @@ body {
     background-size: cover; 
 }
 
-/* --- Top Bar --- */
+/* --- Top Bar & Colourful Buttons --- */
 .top-bar { 
     height: var(--top-bar-height); background: rgba(255,255,255,0.95); 
     border-bottom: 2px solid #ddd; display: flex; align-items: center; 
     padding: 0 20px; z-index: 100; gap: 20px; flex-shrink: 0;
 }
+.nav-group { display: flex; gap: 10px; }
+.nav-btn { 
+    padding: 10px 18px; border-radius: 12px; border: none; color: white; 
+    font-weight: bold; cursor: pointer; font-size: 1rem;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.1); transition: transform 0.1s;
+}
+.nav-btn:active { transform: translateY(2px); box-shadow: none; }
+
+/* Restoring Button Colours */
+.btn-sorting { background-color: #FF9F43 !important; }
+.btn-naming { background-color: #10AC84 !important; }
+.btn-ran { background-color: #EE5253 !important; }
+
 .nav-settings { display: flex; align-items: center; gap: 15px; margin-left: auto; }
 .control-item { display: flex; align-items: center; gap: 5px; font-size: 0.9rem; font-weight: bold; }
 
 /* --- Global Page Containers --- */
 #capture-area { flex-grow: 1; height: calc(100vh - var(--top-bar-height)); overflow: hidden; position: relative; }
-#game-stage { height: 100%; width: 100%; overflow-y: auto; padding: 20px; box-sizing: border-box; }
+#game-stage { height: 100%; width: 100%; display: flex; flex-direction: column; box-sizing: border-box; }
 
-/* --- SELECTION & PREP LAYOUT (Vertical/Perfect Version) --- */
-.vertical-layout { display: block !important; }
-#vocabSearch { width: 100%; padding: 15px 20px; font-size: 1.3rem; border-radius: 15px; border: 3px solid #FF9F43; margin-bottom: 25px; box-sizing: border-box; }
+/* --- SELECTION PAGE (Sticky Footer Layout) --- */
+.selection-container { display: flex; flex-direction: column; height: 100%; padding: 20px; box-sizing: border-box; }
+#selection-content { flex-grow: 1; overflow-y: auto; padding-right: 10px; margin-bottom: 10px; }
+.selection-footer { 
+    height: 80px; flex-shrink: 0; display: flex; align-items: center; justify-content: flex-end; 
+    background: rgba(255,255,255,0.8); border-top: 2px solid #ddd; padding: 0 20px; border-radius: 15px;
+}
+
+#vocabSearch { width: 100%; padding: 15px 20px; font-size: 1.3rem; border-radius: 15px; border: 3px solid #FF9F43; margin-bottom: 20px; box-sizing: border-box; }
 .category-section { margin-bottom: 30px; padding-bottom: 15px; border-bottom: 2px dashed #ccc; }
 .category-title { display: block; font-size: 1.4rem; font-weight: bold; margin-bottom: 15px; background: rgba(255,255,255,0.7); padding: 5px 15px; border-left: 8px solid #FF9F43; border-radius: 5px; }
-.selection-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px; }
+.selection-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; }
 .select-item { border: 4px solid #fff; border-radius: 15px; padding: 10px; text-align: center; cursor: pointer; background: rgba(255,255,255,0.9); }
 .select-item.active { border-color: #10AC84; background: #e6fff9; }
-.select-item img { width: 90px; height: 90px; object-fit: contain; pointer-events: none; }
+.select-item img { width: 100px; height: 100px; object-fit: contain; pointer-events: none; }
 
-/* --- CHALLENGE LAYOUT (Split Screen) --- */
-.challenge-layout { display: flex !important; flex-direction: row !important; gap: 20px; overflow: hidden !important; }
+/* --- PREP & CHALLENGE --- */
+.vertical-scroll { overflow-y: auto; padding: 20px; flex-grow: 1; }
+.challenge-layout { display: flex !important; flex-direction: row !important; gap: 20px; padding: 20px; height: 100%; overflow: hidden !important; }
+
 .challenge-pool { 
     width: 320px; height: 100%; background: rgba(255,255,255,0.3); border: 4px dashed #666; border-radius: 20px; 
     padding: 15px; display: grid; grid-template-columns: repeat(2, 1fr); grid-auto-rows: min-content; gap: 12px; overflow-y: auto; 
 }
 .bin-container { flex-grow: 1; height: 100%; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; }
 
-/* --- Components --- */
 .bin { display: flex; width: 100%; min-height: 160px; border: 5px solid #ddd; border-radius: 25px; background: rgba(255,255,255,0.85); overflow: hidden; flex-shrink: 0; }
 .bin-header { width: 110px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px; }
 .bin-header img { width: 70px; height: 70px; object-fit: contain; }
@@ -55,10 +75,10 @@ body {
 
 .hide-text .card p, .hide-text .select-item p { display: none !important; }
 
-/* Big Buttons */
-.btn-fixed, .btn-free { padding: 40px 60px; font-size: 2rem; border-radius: 30px; color: white; border: none; cursor: pointer; margin: 20px; }
+/* Big Central Buttons */
+.btn-fixed, .btn-free { padding: 40px 60px; font-size: 2rem; border-radius: 30px; color: white; border: none; cursor: pointer; margin: 20px; box-shadow: 0 6px 0 rgba(0,0,0,0.1); }
 .btn-fixed { background: #FF9F43; } .btn-free { background: #3498db; }
-.back-btn { background: #b2bec3; padding: 10px 20px; border-radius: 10px; color: white; border: none; cursor: pointer; margin-bottom: 10px; }
+.back-btn { background: #b2bec3; padding: 10px 20px; border-radius: 10px; color: white; border: none; cursor: pointer; }
 
 .feedback-star, .feedback-wrong { position: absolute; top: -20px; right: -15px; font-size: 60px; z-index: 1000; animation: popUp 0.8s forwards; pointer-events: none; }
 @keyframes popUp { 0% { transform: scale(0.5); opacity: 0; } 50% { transform: scale(1.3); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
