@@ -53,20 +53,17 @@ const vocabList = bulkVocabData.split('\n').map((line, i) => {
 let selectedCards = [];
 let gameType = 'fixed';
 
-// Settings Listeners
+// Background & Slider
 document.getElementById('bgPicker').addEventListener('change', (e) => {
     document.body.style.background = e.target.value === 'white' ? "white" : `url('images/${e.target.value}') no-repeat center center fixed`;
     document.body.style.backgroundSize = "cover";
 });
-
 document.getElementById('sizeSlider').addEventListener('input', (e) => {
     document.documentElement.style.setProperty('--card-size', `${e.target.value}px`);
 });
-
 function toggleTextDisplay() {
     const stage = document.getElementById('game-stage');
-    const checked = document.getElementById('textToggle').checked;
-    checked ? stage.classList.remove('hide-text') : stage.classList.add('hide-text');
+    document.getElementById('textToggle').checked ? stage.classList.remove('hide-text') : stage.classList.add('hide-text');
 }
 
 // Navigation
@@ -74,12 +71,12 @@ function initGame(mode) { if (mode === 'sorting') renderLevelSelect(); }
 
 function renderLevelSelect() {
     const stage = document.getElementById('game-stage');
+    stage.className = "vertical-layout";
     document.getElementById('current-game-title').innerText = "1. 選擇分類方式";
-    stage.innerHTML = `
-        <div style="text-align:center; padding-top:100px; width:100%;">
-            <button class="btn-fixed" onclick="startSelection('fixed')">按類別分類</button>
-            <button class="btn-free" onclick="startSelection('free')">自由分類</button>
-        </div>`;
+    stage.innerHTML = `<div style="text-align:center; padding-top:80px; width:100%;">
+        <button class="btn-fixed" onclick="startSelection('fixed')">按類別分類</button>
+        <button class="btn-free" onclick="startSelection('free')">自由分類</button>
+    </div>`;
 }
 
 function startSelection(type) {
@@ -88,14 +85,14 @@ function startSelection(type) {
 }
 
 function renderSelectionPage() {
-    document.getElementById('current-game-title').innerText = "2. 選取練習詞彙";
     const stage = document.getElementById('game-stage');
-    stage.style.flexDirection = "column";
+    stage.className = "vertical-layout";
+    document.getElementById('current-game-title').innerText = "2. 選取練習詞彙";
     stage.innerHTML = `
-        <div style="width:100%"><button class="back-btn" onclick="renderLevelSelect()">⇠ 返回</button></div>
+        <button class="back-btn" onclick="renderLevelSelect()">⇠ 返回</button>
         <input type="text" id="vocabSearch" placeholder="🔍 搜尋詞彙..." onkeyup="updateSelectionList(this.value.toLowerCase())">
-        <div id="selection-content" style="overflow-y:auto; flex-grow:1;"></div>
-        <div style="text-align:right; padding:10px;"><button class="nav-btn" style="background:#10AC84; padding:15px 40px; font-size:1.2rem;" onclick="proceed()">開始活動 ➔</button></div>`;
+        <div id="selection-content"></div>
+        <div style="text-align:right; margin-top:20px;"><button class="nav-btn" style="background:#10AC84; padding:15px 40px; border-radius:15px;" onclick="proceed()">開始活動 ➔</button></div>`;
     updateSelectionList();
     toggleTextDisplay();
 }
@@ -111,7 +108,7 @@ function updateSelectionList(query = "") {
             items.forEach(item => {
                 const active = selectedCards.some(c => c.id === item.id) ? 'active' : '';
                 html += `<div class="select-item ${active}" onclick="toggleSelect(${item.id})">
-                            <img src="images/${item.img}"><p>${item.name}</p></div>`;
+                    <img src="images/${item.img}"><p>${item.name}</p></div>`;
             });
             html += `</div></div>`;
         }
@@ -131,29 +128,29 @@ function proceed() {
 }
 
 function renderPrep() {
-    document.getElementById('current-game-title').innerText = "3. 教學預覽";
     const stage = document.getElementById('game-stage');
-    stage.style.flexDirection = "column";
+    stage.className = "vertical-layout";
+    document.getElementById('current-game-title').innerText = "3. 教學預覽";
     const cats = [...new Set(selectedCards.map(c => c.category))];
     const colors = ["#FF6B6B", "#48DBFB", "#1DD1A1", "#Feca57"];
     stage.innerHTML = `
-        <div style="width:100%"><button class="back-btn" onclick="renderSelectionPage()">⇠ 返回選取</button></div>
-        <div class="bin-container" style="margin-top:20px;">
+        <button class="back-btn" onclick="renderSelectionPage()">⇠ 返回選取</button>
+        <div class="bin-container">
             ${cats.map((cat, i) => `
                 <div class="bin">
                     <div class="bin-header" style="background:${colors[i%4]}"><img src="images/categories/${cat}.png" onerror="this.style.display='none'"><span>${cat}</span></div>
                     <div class="drop-zone">${selectedCards.filter(c => c.category === cat).map(c => `<div class="card"><img src="images/${c.img}"><p>${c.name}</p></div>`).join('')}</div>
                 </div>`).join('')}
         </div>
-        <button class="nav-btn" style="background:#FF9F43; margin:20px auto; padding:20px 50px; font-size:1.5rem;" onclick="runChallenge()">正式開始遊戲！🚀</button>`;
+        <div style="text-align:center; padding:20px;"><button class="nav-btn" style="background:#FF9F43; padding:20px 50px; border-radius:20px; font-size:1.5rem;" onclick="runChallenge()">正式開始遊戲！🚀</button></div>`;
     toggleTextDisplay();
 }
 
-// --- Challenge Logic (Split Screen) ---
+// --- Challenge Logic (The Split Layout) ---
 function runChallenge() {
-    document.getElementById('current-game-title').innerText = "活動進行中";
     const stage = document.getElementById('game-stage');
-    stage.style.flexDirection = "row"; // Split screen
+    stage.className = "challenge-layout"; // Switch to horizontal split
+    document.getElementById('current-game-title').innerText = "活動進行中";
     
     const cats = gameType === 'fixed' ? [...new Set(selectedCards.map(c => c.category))] : ["籃子 1", "籃子 2"];
     const colors = ["#FF6B6B", "#48DBFB", "#1DD1A1", "#Feca57"];
@@ -167,10 +164,8 @@ function runChallenge() {
                     <div class="drop-zone" data-cat="${cat}"></div>
                 </div>`).join('')}
         </div>
-        <div style="position:absolute; bottom:15px; left:15px; display:flex; gap:10px; z-index:200;">
-            <button class="back-btn" onclick="${gameType==='free'?'renderSelectionPage()':'renderPrep()'}">⇠ 返回</button>
-            ${gameType==='free' ? '<button class="nav-btn" style="background:#10AC84;" onclick="finish()">完成活動 ✅</button>' : ''}
-        </div>`;
+        <div style="position:absolute; bottom:15px; left:15px; z-index:200;"><button class="back-btn" onclick="${gameType==='free'?'renderSelectionPage()':'renderPrep()'}">⇠ 返回</button></div>
+        ${gameType==='free' ? '<button class="nav-btn" style="position:absolute; bottom:15px; right:30px; background:#10AC84;" onclick="finish()">完成 ✅</button>' : ''}`;
 
     const pool = document.getElementById('pool');
     [...selectedCards].sort(()=>0.5-Math.random()).forEach(c => {
@@ -182,12 +177,11 @@ function runChallenge() {
         new Sortable(z, { 
             group: 'sort', animation: 150, 
             onAdd: (e) => { 
-                if(gameType === 'fixed' && e.to.id !== 'pool') {
-                    const ok = (e.item.dataset.cat === e.to.dataset.cat);
-                    showFX(e.item, ok); // Corrected Sound Logic
-                    checkAll();
-                } else if(gameType === 'free' && e.to.id !== 'pool') {
-                    showFX(e.item, true);
+                // Only handle sound for the specific card just moved
+                if (e.to.id !== 'pool') {
+                    const isCorrect = (gameType === 'free' || e.item.dataset.cat === e.to.dataset.cat);
+                    showSingleFX(e.item, isCorrect); 
+                    if (gameType === 'fixed') checkSilence(); // Check game end without extra sounds
                 }
             } 
         });
@@ -195,7 +189,25 @@ function runChallenge() {
     toggleTextDisplay();
 }
 
-function checkAll() {
+// --- Sound Logic Fix: Handle only the moved card ---
+function showSingleFX(el, ok) {
+    const old = el.querySelector('.feedback-star, .feedback-wrong'); if(old) old.remove();
+    const fx = document.createElement('div'); 
+    fx.className = ok ? 'feedback-star' : 'feedback-wrong';
+    fx.innerText = ok ? '⭐' : '❌'; 
+    el.appendChild(fx);
+
+    const sndId = ok ? 'snd-star' : 'snd-wrong';
+    const snd = document.getElementById(sndId);
+    if(snd) {
+        snd.pause(); // Kill existing sound to prevent overlapping
+        snd.currentTime = 0; 
+        snd.play(); 
+    }
+    setTimeout(() => fx.remove(), 800);
+}
+
+function checkSilence() {
     const pool = document.getElementById('pool');
     const bins = document.querySelectorAll('.bin .drop-zone');
     let mistakes = 0; let placed = 0;
@@ -206,20 +218,12 @@ function checkAll() {
             if(card.dataset.cat !== target) mistakes++;
         });
     });
+    // Trigger celebration only if everything is perfect
     if(pool.children.length === 0 && mistakes === 0 && placed === selectedCards.length) setTimeout(finish, 600);
 }
 
-function showFX(el, ok) {
-    const old = el.querySelector('.feedback-star, .feedback-wrong'); if(old) old.remove();
-    const fx = document.createElement('div'); fx.className = ok ? 'feedback-star' : 'feedback-wrong';
-    fx.innerText = ok ? '⭐' : '❌'; el.appendChild(fx);
-    const snd = document.getElementById(ok ? 'snd-star' : 'snd-wrong');
-    if(snd){ snd.pause(); snd.currentTime = 0; snd.play(); }
-    setTimeout(() => fx.remove(), 800);
-}
-
 function finish() {
-    const s = document.getElementById('snd-hooray'); if(s) s.play();
+    document.getElementById('snd-hooray').play();
     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
 }
 
