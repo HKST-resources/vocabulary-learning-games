@@ -53,27 +53,32 @@ const vocabList = bulkVocabData.split('\n').map((line, i) => {
 let selectedCards = [];
 let gameType = 'fixed';
 
-// Background & Slider
+// Settings & Controls
 document.getElementById('bgPicker').addEventListener('change', (e) => {
-    document.body.style.background = e.target.value === 'white' ? "white" : `url('images/${e.target.value}') no-repeat center center fixed`;
-    document.body.style.backgroundSize = "cover";
+    const stage = document.body;
+    stage.style.background = e.target.value === 'white' ? "white" : `url('images/${e.target.value}') no-repeat center center fixed`;
+    stage.style.backgroundSize = "cover";
 });
+
 document.getElementById('sizeSlider').addEventListener('input', (e) => {
     document.documentElement.style.setProperty('--card-size', `${e.target.value}px`);
 });
+
 function toggleTextDisplay() {
     const stage = document.getElementById('game-stage');
     document.getElementById('textToggle').checked ? stage.classList.remove('hide-text') : stage.classList.add('hide-text');
 }
 
 // Navigation
-function initGame(mode) { if (mode === 'sorting') renderLevelSelect(); }
+function initGame(mode) { 
+    if (mode === 'sorting') renderLevelSelect(); 
+}
 
 function renderLevelSelect() {
     const stage = document.getElementById('game-stage');
-    stage.className = "vertical-layout";
+    stage.className = "";
     document.getElementById('current-game-title').innerText = "1. 選擇分類方式";
-    stage.innerHTML = `<div style="text-align:center; padding-top:80px; width:100%;">
+    stage.innerHTML = `<div style="text-align:center; padding-top:100px; width:100%;">
         <button class="btn-fixed" onclick="startSelection('fixed')">按類別分類</button>
         <button class="btn-free" onclick="startSelection('free')">自由分類</button>
     </div>`;
@@ -86,13 +91,18 @@ function startSelection(type) {
 
 function renderSelectionPage() {
     const stage = document.getElementById('game-stage');
-    stage.className = "vertical-layout";
+    stage.className = "";
     document.getElementById('current-game-title').innerText = "2. 選取練習詞彙";
+    
     stage.innerHTML = `
-        <button class="back-btn" onclick="renderLevelSelect()">⇠ 返回</button>
-        <input type="text" id="vocabSearch" placeholder="🔍 搜尋詞彙..." onkeyup="updateSelectionList(this.value.toLowerCase())">
-        <div id="selection-content"></div>
-        <div style="text-align:right; margin-top:20px;"><button class="nav-btn" style="background:#10AC84; padding:15px 40px; border-radius:15px;" onclick="proceed()">開始活動 ➔</button></div>`;
+        <div class="selection-container">
+            <div style="flex-shrink:0;"><button class="back-btn" onclick="renderLevelSelect()">⇠ 返回</button></div>
+            <div style="flex-shrink:0;"><input type="text" id="vocabSearch" placeholder="🔍 搜尋名稱..." onkeyup="updateSelectionList(this.value.toLowerCase())"></div>
+            <div id="selection-content"></div>
+            <div class="selection-footer">
+                <button class="nav-btn" style="background:#10AC84; padding:18px 50px; border-radius:18px; font-size:1.4rem;" onclick="proceed()">開始活動 ➔</button>
+            </div>
+        </div>`;
     updateSelectionList();
     toggleTextDisplay();
 }
@@ -129,27 +139,26 @@ function proceed() {
 
 function renderPrep() {
     const stage = document.getElementById('game-stage');
-    stage.className = "vertical-layout";
+    stage.className = "vertical-scroll";
     document.getElementById('current-game-title').innerText = "3. 教學預覽";
     const cats = [...new Set(selectedCards.map(c => c.category))];
     const colors = ["#FF6B6B", "#48DBFB", "#1DD1A1", "#Feca57"];
     stage.innerHTML = `
         <button class="back-btn" onclick="renderSelectionPage()">⇠ 返回選取</button>
-        <div class="bin-container">
+        <div class="bin-container" style="margin-top:20px;">
             ${cats.map((cat, i) => `
                 <div class="bin">
                     <div class="bin-header" style="background:${colors[i%4]}"><img src="images/categories/${cat}.png" onerror="this.style.display='none'"><span>${cat}</span></div>
                     <div class="drop-zone">${selectedCards.filter(c => c.category === cat).map(c => `<div class="card"><img src="images/${c.img}"><p>${c.name}</p></div>`).join('')}</div>
                 </div>`).join('')}
         </div>
-        <div style="text-align:center; padding:20px;"><button class="nav-btn" style="background:#FF9F43; padding:20px 50px; border-radius:20px; font-size:1.5rem;" onclick="runChallenge()">正式開始遊戲！🚀</button></div>`;
+        <div style="text-align:center; padding:50px;"><button class="nav-btn" style="background:#FF9F43; padding:25px 80px; border-radius:25px; font-size:1.8rem;" onclick="runChallenge()">正式開始！🚀</button></div>`;
     toggleTextDisplay();
 }
 
-// --- Challenge Logic (The Split Layout) ---
 function runChallenge() {
     const stage = document.getElementById('game-stage');
-    stage.className = "challenge-layout"; // Switch to horizontal split
+    stage.className = "challenge-layout"; 
     document.getElementById('current-game-title').innerText = "活動進行中";
     
     const cats = gameType === 'fixed' ? [...new Set(selectedCards.map(c => c.category))] : ["籃子 1", "籃子 2"];
@@ -177,11 +186,10 @@ function runChallenge() {
         new Sortable(z, { 
             group: 'sort', animation: 150, 
             onAdd: (e) => { 
-                // Only handle sound for the specific card just moved
                 if (e.to.id !== 'pool') {
                     const isCorrect = (gameType === 'free' || e.item.dataset.cat === e.to.dataset.cat);
-                    showSingleFX(e.item, isCorrect); 
-                    if (gameType === 'fixed') checkSilence(); // Check game end without extra sounds
+                    playFX(e.item, isCorrect); 
+                    if (gameType === 'fixed') checkEnd(); 
                 }
             } 
         });
@@ -189,37 +197,30 @@ function runChallenge() {
     toggleTextDisplay();
 }
 
-// --- Sound Logic Fix: Handle only the moved card ---
-function showSingleFX(el, ok) {
+function playFX(el, ok) {
     const old = el.querySelector('.feedback-star, .feedback-wrong'); if(old) old.remove();
     const fx = document.createElement('div'); 
     fx.className = ok ? 'feedback-star' : 'feedback-wrong';
     fx.innerText = ok ? '⭐' : '❌'; 
     el.appendChild(fx);
 
-    const sndId = ok ? 'snd-star' : 'snd-wrong';
-    const snd = document.getElementById(sndId);
-    if(snd) {
-        snd.pause(); // Kill existing sound to prevent overlapping
-        snd.currentTime = 0; 
-        snd.play(); 
-    }
+    const snd = document.getElementById(ok ? 'snd-star' : 'snd-wrong');
+    if(snd) { snd.pause(); snd.currentTime = 0; snd.play(); }
     setTimeout(() => fx.remove(), 800);
 }
 
-function checkSilence() {
+function checkEnd() {
     const pool = document.getElementById('pool');
     const bins = document.querySelectorAll('.bin .drop-zone');
-    let mistakes = 0; let placed = 0;
+    let mistakes = 0; let total = 0;
     bins.forEach(bin => {
         const target = bin.dataset.cat;
         bin.querySelectorAll('.card').forEach(card => {
-            placed++;
+            total++;
             if(card.dataset.cat !== target) mistakes++;
         });
     });
-    // Trigger celebration only if everything is perfect
-    if(pool.children.length === 0 && mistakes === 0 && placed === selectedCards.length) setTimeout(finish, 600);
+    if(pool.children.length === 0 && mistakes === 0 && total === selectedCards.length) setTimeout(finish, 600);
 }
 
 function finish() {
@@ -228,9 +229,7 @@ function finish() {
 }
 
 async function takeScreenshot() {
-    const stage = document.getElementById('game-stage');
-    const old = stage.style.overflowY; stage.style.overflowY = 'visible';
-    const canvas = await html2canvas(document.getElementById('capture-area'), { useCORS: true, scale: 2 });
-    stage.style.overflowY = old;
-    const link = document.createElement('a'); link.download = `練習記錄.png`; link.href = canvas.toDataURL(); link.click();
+    const stage = document.getElementById('capture-area');
+    const canvas = await html2canvas(stage, { useCORS: true, scale: 2 });
+    const link = document.createElement('a'); link.download = `詞彙練習_${new Date().getTime()}.png`; link.href = canvas.toDataURL(); link.click();
 }
