@@ -16,40 +16,49 @@
 
     <nav class="sidebar">
         <h1>詞彙學習活動</h1>
-        <hr>
+        
         <div class="menu-section">
-            <button onclick="initGame('sorting')">1. 分類遊戲</button>
-            <button onclick="initGame('naming')">2. 擴展性命名</button>
-            <button onclick="initGame('ran')">3. 快速命名 </button>
+            <button class="btn-sorting" onclick="initGame('sorting')">1. 分類遊戲</button>
+            <button class="btn-naming" onclick="initGame('naming')">2. 擴展性命名</button>
+            <button class="btn-ran" onclick="initGame('ran')">3. 快速命名</button>
         </div>
-        <hr>
+
         <div class="settings-section">
-            <h3>控制面板</h3>
-            <label>卡片大小: <input type="range" id="sizeSlider" min="100" max="450" value="200"></label>
-            <label>顯示文字: <input type="checkbox" id="textToggle" checked></label>
+            <hr>
+            <h3>🛠️ 控制面板</h3>
             
-            <label>背景選擇:
+            <div class="setting-item">
+                <label>卡片大小</label>
+                <input type="range" id="sizeSlider" min="150" max="450" value="220">
+            </div>
+
+            <div class="setting-item">
+                <label><input type="checkbox" id="textToggle" checked> 顯示文字標籤</label>
+            </div>
+
+            <div class="setting-item">
+                <label>背景選擇</label>
                 <select id="bgPicker">
                     <option value="white">純白背景</option>
-                    <option value="park.jpg">圖片1</option>
-                    <option value="classroom.jpg">圖片2</option>
-                    <option value="beach.jpg">圖片3</option>
+                    <option value="park.jpg">圖片 1</option>
+                    <option value="classroom.jpg">圖片 2 </option>
+                    <option value="beach.jpg">圖片 3 </option>
                     <option value="video">動態影片</option>
                 </select>
-            </label>
+            </div>
             
-            <button class="export-btn" onclick="takeScreenshot()">📸 導出練習紙/結果</button>
+            <button class="export-btn" onclick="takeScreenshot()">📸 匯出練習結果</button>
         </div>
     </nav>
 
     <main id="capture-area">
         <div id="game-header">
-            <h2 id="current-game-title">請選擇活動</h2>
+            <h2 id="current-game-title">請從左側選擇遊戲</h2>
         </div>
         
         <div id="game-stage">
             <div class="welcome-screen">
-                <p>歡迎使用！請從左側選單開始。</p>
+                <p>請點選左邊的按鈕開始活動！</p>
             </div>
         </div>
     </main>
