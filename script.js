@@ -53,7 +53,7 @@ const vocabList = bulkVocabData.split('\n').map((line, i) => {
 let selectedCards = [];
 let gameType = 'fixed';
 
-// 背景切換 (僅保留圖片)
+// 背景切換
 document.getElementById('bgPicker').addEventListener('change', (e) => {
     const val = e.target.value;
     const body = document.body;
@@ -62,16 +62,19 @@ document.getElementById('bgPicker').addEventListener('change', (e) => {
     body.style.backgroundSize = "cover";
 });
 
+// 卡片大小滑桿
 document.getElementById('sizeSlider').addEventListener('input', (e) => {
     document.documentElement.style.setProperty('--card-size', `${e.target.value}px`);
 });
 
+// 顯示/隱藏文字同步
 function toggleTextDisplay() {
     const stage = document.getElementById('game-stage');
-    document.getElementById('textToggle').checked ? stage.classList.remove('hide-text') : stage.classList.add('hide-text');
+    const isChecked = document.getElementById('textToggle').checked;
+    isChecked ? stage.classList.remove('hide-text') : stage.classList.add('hide-text');
 }
 
-// 遊戲導航
+// 遊戲導覽
 function initGame(mode) { if (mode === 'sorting') renderLevelSelect(); }
 
 function renderLevelSelect() {
@@ -94,13 +97,13 @@ function renderSelectionPage() {
     const stage = document.getElementById('game-stage');
     stage.innerHTML = `
         <button class="back-btn" onclick="renderLevelSelect()">⇠ 返回</button>
-        <div class="search-bar-container"><input type="text" id="vocabSearch" placeholder="🔍 搜尋..." onkeyup="updateSelectionList(this.value.toLowerCase())"></div>
+        <div class="search-bar-container"><input type="text" id="vocabSearch" placeholder="🔍 搜尋詞彙名稱..." onkeyup="updateSelectionList(this.value.toLowerCase())"></div>
         <div id="selection-content"></div>
         <div style="text-align:right; margin-top:20px;"><button class="action-btn" style="background:#10AC84; padding:15px 35px; border-radius:15px; font-size:1.2rem;" onclick="proceed()">開始活動 ➔</button></div>`;
     updateSelectionList();
+    toggleTextDisplay(); // 即時套用隱藏文字設定
 }
 
-// 1. 修復點擊失效：確保 toggleSelect 被正確呼叫
 function updateSelectionList(query = "") {
     const container = document.getElementById('selection-content');
     const cats = [...new Set(vocabList.map(v => v.category))];
@@ -111,7 +114,6 @@ function updateSelectionList(query = "") {
             html += `<div class="category-section"><span class="category-title">${cat}</span><div class="selection-grid">`;
             items.forEach(item => {
                 const active = selectedCards.some(c => c.id === item.id) ? 'active' : '';
-                // 這裡必須使用 onclick 直接綁定到 HTML 確保 iPad 點擊靈敏
                 html += `<div class="select-item ${active}" onclick="toggleSelect(${item.id})">
                             <img src="images/${item.img}"><p>${item.name}</p></div>`;
             });
@@ -125,9 +127,7 @@ function toggleSelect(id) {
     const idx = selectedCards.findIndex(c => c.id === id);
     if(idx > -1) selectedCards.splice(idx, 1);
     else selectedCards.push(vocabList.find(v => v.id === id));
-    // 重新渲染清單以顯示 active 狀態
-    const query = document.getElementById('vocabSearch')?.value.toLowerCase() || "";
-    updateSelectionList(query);
+    updateSelectionList(document.getElementById('vocabSearch')?.value.toLowerCase() || "");
 }
 
 function proceed() {
@@ -150,12 +150,13 @@ function renderPrep() {
                 </div>`).join('')}
         </div>
         <div style="text-align:center;"><button class="action-btn" style="background:#FF9F43; padding:20px 40px; border-radius:20px; font-size:1.3rem;" onclick="runChallenge()">正式開始遊戲！🚀</button></div>`;
+    toggleTextDisplay();
 }
 
 function runChallenge() {
     document.getElementById('current-game-title').innerText = "活動進行中";
     const stage = document.getElementById('game-stage');
-    const cats = gameType === 'fixed' ? [...new Set(selectedCards.map(c => c.category))] : ["盒子1", "盒子2"];
+    const cats = gameType === 'fixed' ? [...new Set(selectedCards.map(c => c.category))] : ["盒子 1", "盒子 2"];
     const colors = ["#FF6B6B", "#48DBFB", "#1DD1A1", "#Feca57"];
 
     stage.innerHTML = `
@@ -178,7 +179,7 @@ function runChallenge() {
     });
 
     [pool, ...document.querySelectorAll('.drop-zone')].forEach(z => {
-        new Sortable(z, { group:'sort', animation:150, onAdd: (e) => { if(gameType==='fixed') check(); else showFX(e.item, true); } });
+        new Sortable(z, { group:'sort', animation:150, onAdd: (e) => { if(gameType==='fixed') check(); else if(e.to.id !== 'pool') showFX(e.item, true); } });
     });
 }
 
