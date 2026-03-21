@@ -1,66 +1,78 @@
 :root {
     --card-size: 200px;
-    --top-bar-height: 60px; /* 窄版設計 */
+    --top-bar-height: 60px;
 }
 
-body { margin: 0; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+body { 
+    margin: 0; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; 
+    overflow: hidden; 
+    /* 3. 預設草地背景 */
+    background: url('images/park.jpg') no-repeat center center fixed; 
+    background-size: cover; 
+}
 
-/* 背景影片改為填滿整個視窗 */
-#bg-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
-#bg-video { width: 100%; height: 100%; object-fit: cover; }
-
-/* 頂部導覽列樣式 */
+/* 頂部導覽列 */
 .top-bar { 
-    height: var(--top-bar-height); 
-    background: #fff; 
-    border-bottom: 2px solid #ddd; 
-    display: flex; 
-    align-items: center; 
-    padding: 0 20px; 
-    z-index: 100;
-    gap: 30px;
+    height: var(--top-bar-height); background: rgba(255,255,255,0.95); 
+    border-bottom: 2px solid #ddd; display: flex; align-items: center; 
+    padding: 0 20px; z-index: 100; gap: 20px;
 }
-
-.brand { font-weight: bold; font-size: 1.2rem; color: #333; min-width: 100px; }
 
 .nav-group { display: flex; gap: 10px; }
-.nav-btn { 
-    padding: 6px 15px; border-radius: 10px; border: none; color: white; 
-    font-weight: bold; cursor: pointer; white-space: nowrap; 
-}
+.nav-btn { padding: 8px 15px; border-radius: 10px; border: none; color: white; font-weight: bold; cursor: pointer; }
 .btn-sorting { background: #FF9F43; }
 .btn-naming { background: #10AC84; }
 .btn-ran { background: #EE5253; }
 
-.nav-settings { display: flex; align-items: center; gap: 20px; margin-left: auto; }
-.control-item { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: bold; }
-#sizeSlider { width: 100px; }
-#bgPicker { padding: 4px; border-radius: 5px; }
+.nav-settings { display: flex; align-items: center; gap: 15px; margin-left: auto; }
+.control-item { display: flex; align-items: center; gap: 5px; font-size: 0.9rem; }
 
-.export-btn { background: #2d3436; color: white; border: none; padding: 6px 15px; border-radius: 8px; cursor: pointer; }
-
-/* 主遊戲區域：扣除頂部高度 */
-#capture-area { 
-    flex-grow: 1; height: calc(100vh - var(--top-bar-height)); 
-    display: flex; flex-direction: column; overflow: hidden; position: relative; 
+/* 4. 格式選擇大按鈕修正 */
+.btn-fixed, .btn-free { 
+    padding: 40px 60px !important; 
+    font-size: 2rem !important; 
+    border-radius: 30px !important; 
+    color: white; 
+    border: none; 
+    cursor: pointer; 
+    margin: 20px;
+    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
 }
-#game-stage { flex-grow: 1; overflow-y: auto; padding: 20px; box-sizing: border-box; }
+.btn-fixed { background-color: #FF9F43; }
+.btn-free { background-color: #3498db; }
+.btn-fixed:active, .btn-free:active { transform: scale(0.95); }
 
-/* 分類盒子佈局 - 因為空間變寬了，盒子可以更大 */
+/* 主區域 */
+#capture-area { flex-grow: 1; height: calc(100vh - var(--top-bar-height)); display: flex; flex-direction: column; overflow: hidden; position: relative; }
+#game-stage { flex-grow: 1; overflow-y: auto; padding: 20px; }
+
+/* 選取頁面小圖 - 確保 z-index 不會擋住點擊 */
+.selection-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px; }
+.select-item { 
+    border: 4px solid #fff; border-radius: 15px; padding: 10px; text-align: center; 
+    cursor: pointer; background: rgba(255,255,255,0.9); position: relative; z-index: 5;
+}
+.select-item.active { border-color: #10AC84; background: #e6fff9; }
+.select-item img { width: 90px; height: 90px; object-fit: contain; pointer-events: none; }
+
+/* 分類箱佈局 (左側標題) */
 .bin { 
-    display: flex; flex-direction: row; 
-    min-width: 600px; min-height: 200px; 
-    border: 5px solid #ddd; border-radius: 25px; 
-    background: rgba(255,255,255,0.85); margin: 20px auto; overflow: hidden;
+    display: flex; flex-direction: row; min-width: 600px; min-height: 200px; 
+    border: 5px solid #ddd; border-radius: 25px; background: rgba(255,255,255,0.85); 
+    margin: 20px auto; overflow: hidden; 
 }
-
-/* 其他卡片、選擇頁面 CSS 保持上一版不變即可 */
-.selection-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; }
-.select-item { border: 3px solid #eee; border-radius: 12px; padding: 10px; text-align: center; cursor: pointer; background: white; }
-.select-item img { width: 80px; height: 80px; object-fit: contain; }
-.card { width: var(--card-size); padding: 10px; border: 4px solid #f0f0f0; border-radius: 20px; background: white; text-align: center; margin: 8px; position: relative; }
-.card img { width: 100%; border-radius: 10px; }
-.bin-header { width: 110px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px; }
+.bin-header { 
+    width: 120px; flex-shrink: 0; display: flex; flex-direction: column; 
+    align-items: center; justify-content: center; padding: 10px; 
+}
 .bin-header img { width: 80px; height: 80px; object-fit: contain; }
-.bin-header span { font-size: 0.85rem; font-weight: bold; color: white; margin-top: 5px; }
-.drop-zone { flex-grow: 1; padding: 15px; display: flex; flex-wrap: wrap; gap: 10px; }
+.bin-header span { font-size: 0.9rem; font-weight: bold; color: white; margin-top: 5px; }
+
+.drop-zone { flex-grow: 1; padding: 15px; display: flex; flex-wrap: wrap; gap: 10px; min-height: 150px; }
+.card { width: var(--card-size); padding: 10px; border: 4px solid #f0f0f0; border-radius: 20px; background: white; text-align: center; margin: 8px; position: relative; }
+.card img { width: 100%; border-radius: 10px; pointer-events: none; }
+.hide-text .card p { display: none; }
+
+.action-btn { cursor: pointer; border: none; color: white; font-weight: bold; }
+.back-btn { background: #b2bec3; padding: 10px 20px; border-radius: 10px; color: white; border: none; cursor: pointer; margin-bottom: 10px; }
