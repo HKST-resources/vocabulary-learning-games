@@ -63,7 +63,20 @@ document.getElementById('sizeSlider').addEventListener('input', (e) => {
 document.getElementById('bgPicker').addEventListener('change', (e) => {
     const main = document.getElementById('capture-area');
     const val = e.target.value;
-    main.style.backgroundImage = (val === 'white' || val === 'video') ? "none" : `url('images/${val}')`;
+
+    if (val === 'white') {
+        main.style.background = "white";
+    } else if (val === 'video') {
+        // 影片背景邏輯
+        main.style.background = "none";
+        // 這裡可以觸發顯示你的 video 標籤
+    } else {
+        main.style.backgroundImage = `url('images/${val}')`;
+        main.style.backgroundSize = "cover";      // 自動縮放以填滿區域
+        main.style.backgroundPosition = "center"; // 圖片置中
+        main.style.backgroundRepeat = "no-repeat";
+        main.style.backgroundAttachment = "fixed"; // 重要：背景固定，不隨捲動拉伸
+    }
 });
 
 /** 3. 遊戲流程導航 **/
