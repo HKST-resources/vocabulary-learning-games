@@ -268,7 +268,27 @@ const vocabList = bulkVocabData.split('\n').map((line, i) => {
 let selectedCards = [];
 let gameType = 'fixed';
 
-// 1. 初始化與全域控制
+// --- Debug Sound System ---
+function playSoundEffect(type) {
+    const originalSnd = document.getElementById(type === 'ok' ? 'snd-star' : (type === 'hooray' ? 'snd-hooray' : 'snd-wrong'));
+    if (!originalSnd) return;
+    
+    // Create a fresh clone every single time to prevent audio cutoff
+    const clone = originalSnd.cloneNode();
+    
+    // Resume audio context for browsers that sleep (e.g. Chrome/Safari)
+    const context = new (window.AudioContext || window.webkitAudioContext)();
+    if (context.state === 'suspended') {
+        context.resume();
+    }
+
+    clone.play().catch(e => {
+        // Fallback for rapid clicks
+        console.warn("Audio play prevented or interrupted.", e);
+    });
+}
+
+// 1. Settings
 document.getElementById('sizeSlider').addEventListener('input', (e) => {
     document.documentElement.style.setProperty('--img-size', `${e.target.value}px`);
 });
@@ -283,7 +303,7 @@ function toggleTextDisplay() {
     document.getElementById('textToggle').checked ? stage.classList.remove('hide-text') : stage.classList.add('hide-text');
 }
 
-// 2. 導航邏輯
+// 2. Navigation
 function initGame(mode) {
     if (mode === 'sorting') {
         const stage = document.getElementById('game-stage');
@@ -364,13 +384,14 @@ function proceed() {
     gameType === 'free' ? runChallenge() : renderPrep();
 }
 
-// 3. 預覽板面 (修正滾動與高度裁切)
+// 3. Prep Page
 function renderPrep() {
     const stage = document.getElementById('game-stage');
     const cats = [...new Set(selectedCards.map(c => c.category))];
     stage.innerHTML = `<div class="vertical-scroll">
         <button class="nav-btn" style="background:#999; margin-bottom:20px;" onclick="renderSelectionPage()">⇠ 返回修改</button>
-        <div class="bin-container" style="height: auto;"> ${cats.map((cat, i) => `
+        <div class="bin-container" style="height: auto;">
+            ${cats.map((cat, i) => `
             <div class="bin">
                 <div class="bin-header" style="background:${categoryColors[i % categoryColors.length]}">
                     <img src="images/categories/${cat}.png" onerror="this.style.display='none'"><span>${cat}</span>
@@ -384,13 +405,12 @@ function renderPrep() {
     toggleTextDisplay();
 }
 
-// 4. 挑戰頁面 (自由模式加入完成按鈕)
+// 4. Challenge Page
 function runChallenge() {
     const stage = document.getElementById('game-stage');
     const cats = gameType === 'fixed' ? [...new Set(selectedCards.map(c => c.category))] : ["籃子 1", "籃子 2"];
     
-    stage.innerHTML = `
-        <div class="challenge-layout">
+    stage.innerHTML = `<div class="challenge-layout">
             <div id="pool" class="challenge-pool"></div>
             <div class="bin-container">${cats.map((cat, i) => `
                 <div class="bin">
@@ -425,7 +445,6 @@ function runChallenge() {
     toggleTextDisplay();
 }
 
-// 5. 反饋與特效
 function playFX(cardEl, ok) {
     const rect = cardEl.getBoundingClientRect();
     const fx = document.createElement('div');
@@ -436,19 +455,13 @@ function playFX(cardEl, ok) {
     document.body.appendChild(fx);
     setTimeout(() => fx.remove(), 800);
 
-    const originalSnd = document.getElementById(ok ? 'snd-star' : 'snd-wrong');
-    if (originalSnd) {
-        const clonedSnd = originalSnd.cloneNode();
-        clonedSnd.play().catch(e => console.log("音效播失敗:", e));
-    }
+    // Call the fixed sound trigger
+    playSoundEffect(ok ? 'ok' : 'wrong');
 }
 
 function finish() {
-    const snd = document.getElementById('snd-hooray');
-    if(snd) snd.play();
+    playSoundEffect('hooray');
     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-    
-    // 如果是自由模式，按完完成後把按鈕隱藏防止重複按
     const btn = document.getElementById('btn-finish');
     if(btn) btn.style.display = 'none';
 }
