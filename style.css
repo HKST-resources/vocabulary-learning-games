@@ -6,7 +6,10 @@
 
 body { 
     margin: 0; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; 
-    overflow: hidden; background: #f0f0f0; 
+    overflow: hidden; 
+    /* 1. 預設改為草地 */
+    background: url('images/park.jpg') no-repeat center center fixed; 
+    background-size: cover; 
 }
 
 /* --- Top Bar & Buttons --- */
@@ -15,7 +18,6 @@ body {
     border-bottom: 2px solid #ddd; display: flex; align-items: center; 
     padding: 0 20px; z-index: 1000; gap: 20px; flex-shrink: 0;
 }
-.brand { font-weight: bold; font-size: 1.2rem; }
 .nav-group { display: flex; gap: 12px; }
 .nav-btn { 
     padding: 8px 20px; border-radius: 12px; border: none; color: white; 
@@ -29,45 +31,48 @@ body {
 
 .nav-settings { display: flex; align-items: center; gap: 15px; margin-left: auto; }
 .control-item { display: flex; align-items: center; gap: 5px; font-size: 0.9rem; font-weight: bold; }
-.export-btn { background: #54a0ff; color: white; border: none; padding: 8px 15px; border-radius: 10px; cursor: pointer; }
 
 /* --- Main Area Layout --- */
-#capture-area { 
-    flex-grow: 1; height: calc(100vh - var(--top-bar-height)); 
-    display: flex; flex-direction: column; position: relative; overflow: hidden;
-}
+#capture-area { flex-grow: 1; height: calc(100vh - var(--top-bar-height)); display: flex; flex-direction: column; position: relative; overflow: hidden; }
 #game-header { height: var(--header-height); display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.5); flex-shrink: 0; }
 #game-stage { flex-grow: 1; overflow: hidden; position: relative; }
 
-/* --- SELECTION PAGE: Sticky Footer Version --- */
+/* --- SELECTION PAGE: Sticky Footer --- */
 .selection-container { display: flex; flex-direction: column; height: 100%; padding: 0 20px 20px 20px; box-sizing: border-box; }
 #selection-content { flex-grow: 1; overflow-y: auto; padding-right: 10px; margin-top: 10px; }
 .selection-footer { 
     height: 90px; flex-shrink: 0; display: flex; align-items: center; justify-content: flex-end; 
     background: rgba(255,255,255,0.9); border-top: 3px solid #FF9F43; padding: 0 30px; border-radius: 20px 20px 0 0;
-    box-shadow: 0 -5px 15px rgba(0,0,0,0.05);
 }
 
 #vocabSearch { width: 100%; padding: 15px 25px; font-size: 1.4rem; border-radius: 15px; border: 4px solid #FF9F43; margin-top: 10px; box-sizing: border-box; }
 .category-section { margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px dashed #ccc; }
 .category-title { display: block; font-size: 1.5rem; font-weight: bold; margin-bottom: 15px; background: rgba(255,255,255,0.8); padding: 8px 20px; border-left: 10px solid #FF9F43; border-radius: 5px; }
 .selection-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 20px; }
-.select-item { border: 4px solid #fff; border-radius: 15px; padding: 12px; text-align: center; cursor: pointer; background: white; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-.select-item.active { border-color: #10AC84; background: #e6fff9; transform: scale(1.02); }
+.select-item { border: 4px solid #fff; border-radius: 15px; padding: 12px; text-align: center; cursor: pointer; background: white; }
+.select-item.active { border-color: #10AC84; background: #e6fff9; }
 .select-item img { width: 110px; height: 110px; object-fit: contain; }
 
-/* --- PREP PAGE: Vertical Scroll --- */
-.vertical-scroll { height: 100%; overflow-y: auto; padding: 20px; box-sizing: border-box; }
+/* --- 2. HIDE TEXT -> SQUARE CARDS --- */
+.hide-text .card, .hide-text .select-item { 
+    aspect-ratio: 1 / 1; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+}
+.hide-text .card p, .hide-text .select-item p { display: none !important; }
+.hide-text .card img { max-height: 90%; width: auto; }
 
-/* --- CHALLENGE PAGE: Split Horizontal --- */
+/* --- PREP & CHALLENGE --- */
+.vertical-scroll { height: 100%; overflow-y: auto; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; }
 .challenge-layout { display: flex !important; flex-direction: row !important; height: 100%; gap: 20px; padding: 20px; box-sizing: border-box; overflow: hidden; }
+
 .challenge-pool { 
     width: 320px; height: 100%; background: rgba(255,255,255,0.4); border: 4px dashed #666; border-radius: 25px; 
     padding: 15px; display: grid; grid-template-columns: repeat(2, 1fr); grid-auto-rows: min-content; gap: 12px; overflow-y: auto; 
 }
-.bin-container { flex-grow: 1; height: 100%; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; }
+.bin-container { flex-grow: 1; display: flex; flex-direction: column; gap: 15px; }
 
-/* --- Components --- */
 .bin { display: flex; width: 100%; min-height: 180px; border: 5px solid #ddd; border-radius: 25px; background: rgba(255,255,255,0.9); overflow: hidden; flex-shrink: 0; }
 .bin-header { width: 120px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 15px; }
 .bin-header img { width: 80px; height: 80px; object-fit: contain; }
@@ -79,13 +84,10 @@ body {
 .challenge-pool .card { width: 125px !important; }
 .drop-zone .card { width: var(--card-size) !important; }
 
-.hide-text .card p, .hide-text .select-item p { display: none !important; }
-
-/* Functional Elements */
+/* Buttons & Feedback */
 .back-btn { background: #b2bec3; padding: 10px 20px; border-radius: 10px; color: white; border: none; cursor: pointer; margin-bottom: 15px; font-weight: bold; }
 .feedback-star, .feedback-wrong { position: absolute; top: -25px; right: -20px; font-size: 65px; z-index: 1000; animation: popUp 0.8s forwards; pointer-events: none; }
 @keyframes popUp { 0% { transform: scale(0.5); opacity: 0; } 50% { transform: scale(1.4); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
 
-/* Level Select Buttons */
 .btn-fixed, .btn-free { padding: 50px 70px; font-size: 2.2rem; border-radius: 40px; color: white; border: none; cursor: pointer; margin: 30px; box-shadow: 0 8px 0 rgba(0,0,0,0.1); font-weight: bold; }
 .btn-fixed { background: #FF9F43; } .btn-free { background: #3498db; }
