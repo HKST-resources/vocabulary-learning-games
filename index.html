@@ -22,14 +22,10 @@
     </header>
 
     <div class="settings-bar">
-        <div class="settings-item">
-            <label>大小</label>
-            <input type="range" id="sizeSlider" min="100" max="300" value="150">
-        </div>
-        <div class="settings-item">
-            <input type="checkbox" id="textToggle" checked onchange="toggleTextDisplay()"> 顯示文字
-        </div>
-        <select id="bgPicker">
+        <label>大小</label>
+        <input type="range" id="sizeSlider" min="100" max="300" value="150">
+        <input type="checkbox" id="textToggle" checked onchange="toggleTextDisplay()"> 顯示文字
+        <select id="bgPicker" onchange="changeBg(this.value)">
             <option value="white">背景: 白色</option>
             <option value="park.jpg">草地</option>
             <option value="road.jpg">馬路</option>
