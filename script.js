@@ -266,7 +266,7 @@ const vocabList = bulkVocabData.split('\n').map((line, i) => {
     return { id: i, category: parts[0]?.trim(), name: parts[1]?.trim(), img: parts[2]?.trim() };
 });
 
-// Global State
+// Global Game State
 let selectedCards = [];
 let gameType = 'fixed'; 
 let currentGameMode = ""; 
@@ -280,7 +280,7 @@ let timerInterval = null;
 let remainingTime = 0;
 let isPaused = false;
 
-// --- AUDIO HELPER ---
+// --- COMMON TOOLS ---
 function playSoundEffect(type) {
     const originalSnd = document.getElementById(type === 'ok' ? 'snd-star' : (type === 'hooray' ? 'snd-hooray' : 'snd-wrong'));
     if (!originalSnd) return;
@@ -290,7 +290,6 @@ function playSoundEffect(type) {
     clone.play().catch(e => console.warn("Audio error", e));
 }
 
-// --- SETTINGS LISTENERS ---
 document.getElementById('sizeSlider').addEventListener('input', (e) => {
     document.documentElement.style.setProperty('--img-size', `${e.target.value}px`);
 });
@@ -306,7 +305,7 @@ function toggleTextDisplay() {
     document.getElementById('textToggle').checked ? stage.classList.remove('hide-text') : stage.classList.add('hide-text');
 }
 
-// --- MAIN NAVIGATION ---
+// --- NAVIGATION ---
 function initGame(mode) {
     const stage = document.getElementById('game-stage');
     currentGameMode = mode;
@@ -314,18 +313,17 @@ function initGame(mode) {
     namingCategory = "";
 
     if (mode === 'sorting') {
-        stage.innerHTML = `
-            <div style="text-align:center; padding-top:100px;">
-                <button class="nav-btn btn-sorting" style="font-size:2rem; padding:40px 60px;" onclick="startSelection('fixed')">按類別分類</button>
-                <button class="nav-btn btn-naming" style="font-size:2rem; padding:40px 60px; margin-left:20px;" onclick="startSelection('free')">自由分類</button>
-            </div>`;
+        stage.innerHTML = `<div style="text-align:center; padding-top:100px;">
+            <button class="nav-btn btn-sorting" style="font-size:2rem; padding:40px 60px;" onclick="startSelection('fixed')">按類別分類</button>
+            <button class="nav-btn btn-naming" style="font-size:2rem; padding:40px 60px; margin-left:20px;" onclick="startSelection('free')">自由分類</button>
+        </div>`;
         document.getElementById('current-game-title').innerText = "1. 選擇分類模式";
     } else if (mode === 'naming') {
         renderNamingSelection();
     }
 }
 
-// --- SELECTION LOGIC (SHARED/ADAPTED) ---
+// --- SELECTION PAGE (COMMON) ---
 function startSelection(type) {
     gameType = type;
     renderSelectionPage();
@@ -337,16 +335,17 @@ function renderSelectionPage() {
     stage.innerHTML = `
         <div class="selection-screen">
             <div class="selection-controls">
-                <button class="nav-btn" style="background:#999;" onclick="initGame('sorting')">⇠ 返回</button>
+                <button class="nav-btn" style="background:#999; padding: 5px 15px;" onclick="initGame('sorting')">⇠</button>
                 <select id="catJumpMenu" onchange="document.getElementById(this.value).scrollIntoView()">
-                    <option value="">快速跳轉...</option>
+                    <option value="">跳轉類別...</option>
                     ${cats.map(c => `<option value="cat-${c}">${c}</option>`).join('')}
                 </select>
-                <input type="text" id="vocabSearch" placeholder="🔍 搜尋詞彙..." onkeyup="updateSelectionList(this.value)">
+                <input type="text" id="vocabSearch" placeholder="🔍 搜尋..." onkeyup="updateSelectionList(this.value)">
+                <button class="nav-btn" style="background:#f39c12; font-size:0.8rem;" onclick="selectAllResults()">全選搜尋結果</button>
             </div>
             <div id="selection-scroll-area"></div>
             <div class="selection-footer">
-                <button class="nav-btn btn-naming" style="width:80%; font-size:1.6rem; padding:20px;" onclick="proceed()">下一步 (已選: <span id="selCount">0</span>) ➔</button>
+                <button class="btn-proceed-small" onclick="proceed()">下一步 (<span id="selCount">0</span>) ➔</button>
             </div>
         </div>`;
     updateSelectionList();
@@ -357,25 +356,21 @@ function renderNamingSelection() {
     const cats = [...new Set(vocabList.map(v => v.category))];
     stage.innerHTML = `
         <div class="selection-screen">
-            <div class="selection-controls" style="flex-wrap:wrap; gap:20px;">
-                <div style="flex:1; min-width:300px;">
-                    <label><b>1. 選擇預設類別 或 自訂標題：</b></label>
-                    <div style="display:flex; gap:10px; margin-top:5px;">
-                        <select id="catJumpMenu" onchange="setNamingCat(this.value)">
-                            <option value="">選擇類別...</option>
-                            ${cats.map(c => `<option value="${c}">${c}</option>`).join('')}
-                        </select>
-                        <input type="text" id="customCatInput" placeholder="或在此輸入自訂類別..." oninput="setNamingCat(this.value)">
-                    </div>
-                </div>
-                <div style="flex:1; min-width:300px;">
-                    <label><b>2. 選取提示圖片 (可選)：</b></label>
-                    <input type="text" id="vocabSearch" placeholder="🔍 搜尋詞彙加入預覽板..." onkeyup="updateSelectionList(this.value)" style="margin-top:5px;">
-                </div>
+            <div class="selection-controls">
+                <button class="nav-btn" style="background:#999; padding: 5px 15px;" onclick="initGame('naming')">⇠</button>
+                <label>類別:</label>
+                <select id="catJumpMenu" onchange="document.getElementById('customCatInput').value=this.value; setNamingCat(this.value)">
+                    <option value="">選擇...</option>
+                    ${cats.map(c => `<option value="${c}">${c}</option>`).join('')}
+                </select>
+                <input type="text" id="customCatInput" placeholder="或自訂..." oninput="setNamingCat(this.value)">
+                <label>圖片:</label>
+                <input type="text" id="vocabSearch" placeholder="搜尋..." onkeyup="updateSelectionList(this.value)">
+                <button class="nav-btn" style="background:#f39c12; font-size:0.8rem; white-space:nowrap;" onclick="selectAllResults()">全選搜尋</button>
             </div>
             <div id="selection-scroll-area"></div>
             <div class="selection-footer">
-                <button class="nav-btn btn-naming" style="width:80%; font-size:1.6rem; padding:20px;" onclick="proceed()">下一步：進入預覽板 ➔</button>
+                <button class="btn-proceed-small" onclick="proceed()">下一步 ➔</button>
             </div>
         </div>`;
     document.getElementById('current-game-title').innerText = "擴展性命名：設定";
@@ -409,6 +404,15 @@ function updateSelectionList(query = "") {
     toggleTextDisplay();
 }
 
+function selectAllResults() {
+    const query = document.getElementById('vocabSearch').value;
+    const items = vocabList.filter(v => v.name.includes(query));
+    items.forEach(i => {
+        if (!selectedCards.some(s => s.id === i.id)) selectedCards.push(i);
+    });
+    updateSelectionList(query);
+}
+
 function toggleCard(id) {
     const idx = selectedCards.findIndex(c => c.id === id);
     idx > -1 ? selectedCards.splice(idx, 1) : selectedCards.push(vocabList.find(v => v.id === id));
@@ -423,11 +427,13 @@ function toggleCat(catName) {
         if(allIn && idx > -1) selectedCards.splice(idx, 1);
         else if(!allIn && idx === -1) selectedCards.push(i);
     });
-    updateSelectionList();
+    updateSelectionList(document.getElementById('vocabSearch').value);
 }
 
 function proceed() {
     if(currentGameMode === 'naming') {
+        const custom = document.getElementById('customCatInput')?.value;
+        if(custom) namingCategory = custom;
         if(!namingCategory) return alert("請輸入或選擇一個類別名稱");
         renderPrep();
     } else {
@@ -519,11 +525,9 @@ function playFX(cardEl, ok) {
 function finish() {
     playSoundEffect('hooray');
     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-    const btn = document.getElementById('btn-finish');
-    if(btn) btn.style.display = 'none';
 }
 
-// --- NAMING GAME ---
+// --- NAMING GAME LOGIC ---
 function setupTimerPage() {
     const stage = document.getElementById('game-stage');
     stage.innerHTML = `
@@ -532,19 +536,21 @@ function setupTimerPage() {
         <p><b>選擇時間 (秒):</b></p>
         <div class="duration-options">
             ${[5, 10, 15, 20, 25, 30].map(s => `
-                <button class="nav-btn ${timerSeconds === s ? 'active' : ''}" style="background:#54a0ff; padding:15px 25px;" onclick="timerSeconds=${s}; setupTimerPage()">${s}秒</button>
+                <button class="nav-btn" 
+                        style="background: ${timerSeconds === s ? '#2ecc71' : '#54a0ff'}; padding:15px 20px;" 
+                        onclick="timerSeconds=${s}; setupTimerPage()">${s}秒</button>
             `).join('')}
         </div>
         <p><b>選擇計時器樣式:</b></p>
         <div class="timer-options">
             <div class="timer-card ${timerType==='bomb'?'active':''}" onclick="timerType='bomb'; setupTimerPage()">
-                <img src="https://cdn-icons-png.flaticon.com/512/564/564444.png">炸彈模式
+                <div style="font-size:50px;">💣</div>炸彈模式
             </div>
             <div class="timer-card ${timerType==='car'?'active':''}" onclick="timerType='car'; setupTimerPage()">
-                <img src="https://cdn-icons-png.flaticon.com/512/741/741407.png">賽車模式
+                <div style="font-size:50px;">🏎️</div>賽車模式
             </div>
         </div>
-        <button class="nav-btn btn-sorting" style="font-size:2rem; padding:30px 100px; margin-top:40px;" onclick="startNamingGame()">開始挑戰！</button>
+        <button class="nav-btn btn-sorting" style="font-size:1.8rem; padding:20px 60px; margin-top:20px;" onclick="startNamingGame()">開始挑戰！</button>
     </div>`;
 }
 
@@ -622,21 +628,23 @@ function renderNamingResults() {
     const stage = document.getElementById('game-stage');
     stage.innerHTML = `
     <div class="results-container vertical-scroll">
-        <h1 style="text-align:center; color:#27ae60;">🎉 挑戰結束！</h1>
-        <div style="display:flex; justify-content:space-around; background:#f9f9f9; padding:20px; border-radius:20px; margin-bottom:20px;">
-            <div><p>目標類別</p><h3>${namingCategory}</h3></div>
-            <div><p>挑戰時間</p><h3>${timerSeconds}s</h3></div>
-            <div><p>命名數量</p><h2 style="color:#e67e22;">${namedCount}</h2></div>
-        </div>
-        <hr>
-        <h3>確認已命名的項目 (點擊標記選取圖片)</h3>
-        <div id="results-pool" class="results-grid">
-            ${selectedCards.map(c => `
-                <div class="card result-item" onclick="this.classList.toggle('named')">
-                    <img src="images/${c.img}">
-                    <p>${c.name}</p>
-                </div>
-            `).join('')}
+        <div id="results-capture-area">
+            <h1 style="text-align:center; color:#27ae60;">🎉 挑戰結束！</h1>
+            <div style="display:flex; justify-content:space-around; background:#f9f9f9; padding:20px; border-radius:20px; margin-bottom:20px;">
+                <div><p>目標類別</p><h3>${namingCategory}</h3></div>
+                <div><p>挑戰時間</p><h3>${timerSeconds}s</h3></div>
+                <div><p>命名數量</p><h2 style="color:#e67e22;">${namedCount}</h2></div>
+            </div>
+            <hr>
+            <h3>確認已命名的項目</h3>
+            <div id="results-pool" class="results-grid">
+                ${selectedCards.map(c => `
+                    <div class="card result-item" onclick="this.classList.toggle('named')">
+                        <img src="images/${c.img}">
+                        <p>${c.name}</p>
+                    </div>
+                `).join('')}
+            </div>
         </div>
         <div style="text-align:center; padding:40px;">
             <button class="nav-btn btn-export" style="padding:20px 50px;" onclick="takeScreenshot()">📸 匯出結果報告</button>
@@ -647,8 +655,20 @@ function renderNamingResults() {
 
 // --- EXPORT ---
 async function takeScreenshot() {
-    const canvas = await html2canvas(document.getElementById('capture-area'), { useCORS: true, scale: 2 });
+    const element = document.getElementById('results-capture-area');
+    element.classList.add('capture-mode');
+
+    const canvas = await html2canvas(element, { 
+        useCORS: true, 
+        scale: 2,
+        windowHeight: element.scrollHeight,
+        scrollY: 0
+    });
+
+    element.classList.remove('capture-mode');
+
     const link = document.createElement('a');
-    link.download = `詞彙練習結果_${new Date().getTime()}.png`;
-    link.href = canvas.toDataURL(); link.click();
+    link.download = `命名練習_${namingCategory}.png`;
+    link.href = canvas.toDataURL(); 
+    link.click();
 }
