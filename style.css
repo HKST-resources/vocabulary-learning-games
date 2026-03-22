@@ -190,28 +190,58 @@ body {
     box-shadow: 0 10px 0 #bdc3c7; 
 }
 
+/* --- Large 3D Counting Button --- */
 .counter-btn {
-    /* Layout: Forces the Star to the center on iPad & PC */
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    line-height: 1; 
+    line-height: 1;
     padding: 0;
     
-    /* Style: Large, no border, consistent with your previous version */
-    width: 150px;
-    height: 150px;
-    font-size: 5rem;
+    /* Size & Shape */
+    width: 220px;   /* Increased size */
+    height: 200px;  /* Slightly shorter for the 3D effect */
+    font-size: 7rem;
+    border-radius: 50%;
+    
+    /* Colors & 3D Effect */
     background: #f1c40f;
     border: none;
-    border-radius: 50%;
     cursor: pointer;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    color: white;
     
-    /* Press Animation */
-    transition: transform 0.1s, box-shadow 0.1s;
+    /* This creates the solid 3D "height" look */
+    box-shadow: 0 15px 0 #d35400; 
+    
+    position: relative;
+    transition: all 0.1s;
     user-select: none;
-    -webkit-tap-highlight-color: transparent; /* Removes the grey box on iPad tap */
+    -webkit-tap-highlight-color: transparent;
+    margin-bottom: 20px;
+}
+
+/* Push down effect when tapped */
+.counter-btn:active {
+    transform: translateY(10px);
+    box-shadow: 0 5px 0 #d35400;
+    background: #f39c12;
+}
+
+/* Ensure the number and button are clear */
+.naming-main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+#count-num {
+    font-size: 4rem;
+    color: #2c3e50;
+    font-weight: 900;
+    display: block;
+    margin-top: 10px;
 }
 
 .counter-btn:active {
