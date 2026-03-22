@@ -1,48 +1,10 @@
 const bulkVocabData = `
 水果	哈密瓜	水果/哈密瓜.png
 水果	士多啤梨	水果/士多啤梨.png
-水果	奇異果	水果/奇異果.png
-水果	提子	水果/提子.png
-水果	木瓜	水果/木瓜.png
-水果	楊桃	水果/楊桃.png
-水果	榴槤	水果/榴槤.png
-水果	橙	水果/橙.png
-水果	檸檬	水果/檸檬.png
-水果	火龍果	水果/火龍果.png
-水果	牛油果	水果/牛油果.png
-水果	芒果	水果/芒果.png
-水果	荔枝	水果/荔枝.png
-水果	菠蘿	水果/菠蘿.png
-水果	藍莓	水果/藍莓.png
-水果	蘋果	水果/蘋果.png
-水果	西瓜	水果/西瓜.png
-水果	車厘子	水果/車厘子.png
-水果	香蕉	水果/香蕉.png
-水果	龍眼	水果/龍眼.png
-蔬菜	南瓜	蔬菜/南瓜.png
-蔬菜	娃娃菜	蔬菜/娃娃菜.png
-蔬菜	椰菜	蔬菜/椰菜.png
-蔬菜	椰菜花	蔬菜/椰菜花.png
-蔬菜	洋蔥	蔬菜/洋蔥.png
-蔬菜	生菜	蔬菜/生菜.png
-蔬菜	番薯	蔬菜/番薯.png
-蔬菜	白菜	蔬菜/白菜.png
-蔬菜	粟米	蔬菜/粟米.png
-蔬菜	紅椒	蔬菜/紅椒.png
-蔬菜	紅蘿蔔	蔬菜/紅蘿蔔.png
-蔬菜	茄子	蔬菜/茄子.png
-蔬菜	菜心	蔬菜/菜心.png
-蔬菜	菠菜	蔬菜/菠菜.png
-蔬菜	蕃茄	蔬菜/蕃茄.png
-蔬菜	薯仔	蔬菜/薯仔.png
-蔬菜	蘑菇	蔬菜/蘑菇.png
-蔬菜	蘿蔔	蔬菜/蘿蔔.png
-蔬菜	西蘭花	蔬菜/西蘭花.png
-蔬菜	辣椒	蔬菜/辣椒.png
-蔬菜	青椒	蔬菜/青椒.png
-蔬菜	青瓜	蔬菜/青瓜.png
-蔬菜	青豆	蔬菜/青豆.png
-蔬菜	黃椒	蔬菜/黃椒.png
+動物	獅子	動物/獅子.png
+動物	老虎	動物/老虎.png
+交通	巴士	交通/巴士.png
+交通	的士	交通/的士.png
 `.trim();
 
 const vocabList = bulkVocabData.split('\n').map((line, i) => {
@@ -53,11 +15,15 @@ const vocabList = bulkVocabData.split('\n').map((line, i) => {
 let selectedCards = [];
 let gameType = 'fixed';
 
-// Settings & Controls
+// 1. 初始化預設背景選單
+window.onload = () => {
+    document.getElementById('bgPicker').value = 'park.jpg';
+};
+
+// Background & Slider Logic
 document.getElementById('bgPicker').addEventListener('change', (e) => {
-    const stage = document.body;
-    stage.style.background = e.target.value === 'white' ? "white" : `url('images/${e.target.value}') no-repeat center center fixed`;
-    stage.style.backgroundSize = "cover";
+    document.body.style.background = e.target.value === 'white' ? "white" : `url('images/${e.target.value}') no-repeat center center fixed`;
+    document.body.style.backgroundSize = "cover";
 });
 
 document.getElementById('sizeSlider').addEventListener('input', (e) => {
@@ -137,22 +103,26 @@ function proceed() {
     gameType === 'free' ? runChallenge() : renderPrep();
 }
 
+// 3. 修復：確保 Preparation 頁面按鈕正確顯示並可捲動
 function renderPrep() {
     const stage = document.getElementById('game-stage');
     stage.className = "vertical-scroll";
     document.getElementById('current-game-title').innerText = "3. 教學預覽";
     const cats = [...new Set(selectedCards.map(c => c.category))];
     const colors = ["#FF6B6B", "#48DBFB", "#1DD1A1", "#Feca57"];
+    
     stage.innerHTML = `
-        <button class="back-btn" onclick="renderSelectionPage()">⇠ 返回選取</button>
-        <div class="bin-container" style="margin-top:20px;">
+        <div style="flex-shrink:0;"><button class="back-btn" onclick="renderSelectionPage()">⇠ 返回選取</button></div>
+        <div class="bin-container" style="margin-top:20px; flex-grow:1;">
             ${cats.map((cat, i) => `
                 <div class="bin">
                     <div class="bin-header" style="background:${colors[i%4]}"><img src="images/categories/${cat}.png" onerror="this.style.display='none'"><span>${cat}</span></div>
                     <div class="drop-zone">${selectedCards.filter(c => c.category === cat).map(c => `<div class="card"><img src="images/${c.img}"><p>${c.name}</p></div>`).join('')}</div>
                 </div>`).join('')}
         </div>
-        <div style="text-align:center; padding:50px;"><button class="nav-btn" style="background:#FF9F43; padding:25px 80px; border-radius:25px; font-size:1.8rem;" onclick="runChallenge()">正式開始！🚀</button></div>`;
+        <div style="text-align:center; padding:40px; flex-shrink:0;">
+            <button class="nav-btn" style="background:#FF9F43; padding:25px 80px; border-radius:25px; font-size:1.8rem;" onclick="runChallenge()">正式開始！🚀</button>
+        </div>`;
     toggleTextDisplay();
 }
 
@@ -166,7 +136,7 @@ function runChallenge() {
 
     stage.innerHTML = `
         <div id="pool" class="challenge-pool"></div>
-        <div class="bin-container">
+        <div class="bin-container" style="overflow-y:auto;">
             ${cats.map((cat, i) => `
                 <div class="bin" style="${gameType==='free' ? 'border-color:'+colors[i%4] : ''}">
                     ${gameType === 'fixed' ? `<div class="bin-header" style="background:${colors[i%4]}"><img src="images/categories/${cat}.png" onerror="this.style.display='none'"><span>${cat}</span></div>` : ''}
