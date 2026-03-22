@@ -1,3 +1,4 @@
+// --- 1. 完整資料庫 (延續之前的清單) ---
 const rawData = `水果	哈密瓜	水果/哈密瓜.png
 水果	士多啤梨	水果/士多啤梨.png
 水果	奇異果	水果/奇異果.png
@@ -254,269 +255,117 @@ const rawData = `水果	哈密瓜	水果/哈密瓜.png
 數字	7	數字/7.png
 數字	8	數字/8.png
 數字	9	數字/9.png
-數字	10	數字/10.png`;
+數字	10	數字/10.png`; // 這裡請自行貼入你之前的全部資料
 
-// 解析資料
-const library = rawData.trim().split('\n').map(line => {
-    const [cat, name, path] = line.split('\t');
+const library = rawData.trim().split('\n').map(l => {
+    const [cat, name, path] = l.split('\t');
     return { cat, name, path: `images/${path}` };
 });
 
 const categories = [...new Set(library.map(i => i.cat))];
-let selectedItems = [];
-let gameMode = 'by-category';
-let isActualPlay = false;
+const mainStage = document.getElementById('main-stage');
+const nextBtn = document.getElementById('global-next-btn');
 
-// 初始化音效
-const sounds = {
-    star: new Audio('sounds/star.mp3'),
-    wrong: new Audio('sounds/wrong.mp3'),
-    hooray: new Audio('sounds/hooray.mp3')
+let selectedItems = [];
+let currentGameMode = '';
+
+// --- 2. 模式切換邏輯 ---
+document.getElementById('nav-btn-sort').onclick = () => {
+    selectedItems = [];
+    nextBtn.classList.add('hidden');
+    mainStage.innerHTML = `
+        <div class="mode-menu">
+            <button class="big-mode-btn btn-blue" onclick="enterSelection('by-category')">按類別分類</button>
+            <button class="big-mode-btn btn-orange" onclick="enterSelection('free')">自由分類</button>
+        </div>
+    `;
 };
 
-function playSound(id) {
-    sounds[id].currentTime = 0;
-    sounds[id].play().catch(() => {}); // 避免瀏覽器攔截自動播放
+// --- 3. 進入圖片選取頁面 ---
+function enterSelection(mode) {
+    currentGameMode = mode;
+    renderSelectionPage();
+    nextBtn.classList.remove('hidden');
+    updateNextButton();
 }
 
-// 畫面切換
-function showScreen(id) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
-    document.getElementById(id).classList.remove('hidden');
-    window.scrollTo(0,0);
-}
-
-// 1. 圖片選取階段
-function initSelection(mode) {
-    gameMode = mode;
-    selectedItems = [];
-    document.getElementById('proceedBtn').innerText = `下一步：已選取 0 張`;
-    renderSelectionGrid();
-    showScreen('picture-selection');
-}
-
-function renderSelectionGrid() {
-    const grid = document.getElementById('picture-grid');
-    const jumper = document.getElementById('category-jumper');
-    grid.innerHTML = '';
-    jumper.innerHTML = '';
+function renderSelectionPage() {
+    let html = `
+        <div class="selection-nav">
+            <button class="pill-btn btn-grey" onclick="location.reload()">← 返回</button>
+            <select class="nav-select" onchange="document.getElementById(this.value).scrollIntoView({behavior:'smooth'})">
+                <option value="">🚀 跳轉至...</option>
+                ${categories.map(c => `<option value="cat-${c}">${c}</option>`).join('')}
+            </select>
+            <div class="search-container">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" class="search-input" placeholder="搜尋詞彙..." oninput="searchCards(this.value)">
+            </div>
+        </div>
+    `;
 
     categories.forEach(cat => {
-        // Jump Link
-        const btn = document.createElement('button');
-        btn.innerText = cat;
-        btn.onclick = () => document.getElementById(`section-${cat}`).scrollIntoView({ behavior: 'smooth', block: 'start' });
-        jumper.appendChild(btn);
-
-        // Section
-        const section = document.createElement('div');
-        section.id = `section-${cat}`;
-        section.className = 'cat-section';
-        section.innerHTML = `<h3>${cat}</h3>`;
-        
-        const wrapper = document.createElement('div');
-        wrapper.className = 'flex-wrap';
-
-        library.filter(i => i.cat === cat).forEach(item => {
-            const card = createCard(item);
-            card.onclick = () => {
-                card.classList.toggle('selected-card');
-                if (card.classList.contains('selected-card')) {
-                    selectedItems.push(item);
-                } else {
-                    selectedItems = selectedItems.filter(i => i.path !== item.path);
-                }
-                document.getElementById('proceedBtn').innerText = `下一步：已選取 ${selectedItems.length} 張`;
-            };
-            wrapper.appendChild(card);
-        });
-        section.appendChild(wrapper);
-        grid.appendChild(section);
+        html += `
+            <div id="cat-${cat}" class="category-header-bar">
+                <span style="font-size:24px; font-weight:bold;">${cat}</span>
+                <button class="pill-btn btn-blue" onclick="selectAllInCategory('${cat}')">全選本類</button>
+            </div>
+            <div class="grid-container">
+                ${library.filter(i => i.cat === cat).map(item => `
+                    <div class="card" data-name="${item.name}" data-cat="${item.cat}" onclick="toggleCard(this, '${item.name}', '${item.path}', '${item.cat}')">
+                        <img src="${item.path}">
+                        <div class="card-label">${item.name}</div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
     });
+    mainStage.innerHTML = html;
 }
 
-function createCard(item) {
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.dataset.cat = item.cat;
-    card.dataset.name = item.name;
-    card.innerHTML = `<img src="${item.path}"><div class="card-label">${item.name}</div>`;
-    return card;
-}
-
-// 搜尋功能
-function filterWords() {
-    const query = document.getElementById('wordSearch').value.toLowerCase();
-    document.querySelectorAll('.card').forEach(card => {
-        const isMatch = card.dataset.name.toLowerCase().includes(query);
-        card.style.display = isMatch ? 'inline-block' : 'none';
-    });
-}
-
-// 2. 遊戲階段邏輯
-function goToNextStage() {
-    if (selectedItems.length === 0) return alert('請先選擇圖片');
-    showScreen('game-stage');
-    setupGameStage();
-}
-
-function setupGameStage() {
-    const zonesContainer = document.getElementById('drop-zones-container');
-    const sourceContainer = document.getElementById('source-container');
-    zonesContainer.innerHTML = '';
-    sourceContainer.innerHTML = '';
-    isActualPlay = false;
-
-    if (gameMode === 'by-category') {
-        const activeCats = [...new Set(selectedItems.map(i => i.cat))];
-        activeCats.forEach(cat => {
-            const zone = createDropZone(cat);
-            // 教學階段：先分類好
-            selectedItems.filter(i => i.cat === cat).forEach(item => {
-                zone.appendChild(createCard(item));
-            });
-            zonesContainer.appendChild(zone);
-        });
-        document.getElementById('startPlayBtn').classList.remove('hidden');
-        document.getElementById('finishBtn').classList.add('hidden');
+// --- 4. 選取功能邏輯 ---
+function toggleCard(el, name, path, cat) {
+    el.classList.toggle('selected');
+    const index = selectedItems.findIndex(i => i.path === path);
+    if (index > -1) {
+        selectedItems.splice(index, 1);
     } else {
-        // 自由分類
-        for (let i = 1; i <= 2; i++) {
-            zonesContainer.appendChild(createDropZone(`自由分類 ${i}`, true));
-        }
-        selectedItems.forEach(item => sourceContainer.appendChild(createCard(item)));
-        document.getElementById('startPlayBtn').classList.add('hidden');
-        document.getElementById('finishBtn').classList.remove('hidden');
-        isActualPlay = true;
-        initInteract();
+        selectedItems.push({ name, path, cat });
     }
+    updateNextButton();
 }
 
-function createDropZone(cat, isFree = false) {
-    const div = document.createElement('div');
-    div.className = 'category-box';
-    div.dataset.targetCat = cat;
-    
-    let imgHTML = isFree ? '' : `<img src="images/categories/${cat}.png">`;
-    div.innerHTML = `<div class="cat-header">${imgHTML}<div>${cat}</div></div>`;
-    return div;
-}
-
-function startActualGame() {
-    isActualPlay = true;
-    const source = document.getElementById('source-container');
-    const cards = Array.from(document.querySelectorAll('.category-box .card'));
-    
-    // 打亂並移回上方
-    cards.sort(() => Math.random() - 0.5).forEach(c => source.appendChild(c));
-    
-    document.getElementById('startPlayBtn').classList.add('hidden');
-    initInteract();
-}
-
-// 3. Interact.js 拖放核心
-function initInteract() {
-    interact('.card').draggable({
-        inertia: true,
-        listeners: {
-            move(event) {
-                const target = event.target;
-                const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
-                const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
-                target.style.transform = `translate(${x}px, ${y}px)`;
-                target.setAttribute('data-x', x);
-                target.setAttribute('data-y', y);
-                target.classList.add('dragging');
-            },
-            end(event) {
-                event.target.classList.remove('dragging');
-            }
-        }
-    });
-
-    interact('.category-box').dropzone({
-        overlap: 0.5,
-        ondragenter(event) { event.target.classList.add('drop-target'); },
-        ondragleave(event) { event.target.classList.remove('drop-target'); },
-        ondrop(event) {
-            const card = event.relatedTarget;
-            const zone = event.target;
-            const cardCat = card.dataset.cat;
-            const targetCat = zone.dataset.targetCat;
-
-            if (gameMode === 'free' || cardCat === targetCat) {
-                // 成功
-                zone.appendChild(card);
-                resetCardPosition(card);
-                showEmoji(card, '⭐');
-                playSound('star');
-                checkAllDone();
-            } else {
-                // 失敗
-                showEmoji(card, '❌');
-                playSound('wrong');
-                returnToSource(card);
-            }
-            zone.classList.remove('drop-target');
-        }
+function selectAllInCategory(catName) {
+    const cards = document.querySelectorAll(`.card[data-cat="${catName}"]`);
+    cards.forEach(card => {
+        if (!card.classList.contains('selected')) card.click();
     });
 }
 
-function resetCardPosition(card) {
-    card.style.transform = 'none';
-    card.setAttribute('data-x', 0);
-    card.setAttribute('data-y', 0);
+function updateNextButton() {
+    nextBtn.innerHTML = `下一步 (已選: ${selectedItems.length}) <i class="fa-solid fa-arrow-right"></i>`;
 }
 
-function returnToSource(card) {
-    card.style.transition = 'transform 0.3s';
-    card.style.transform = 'translate(0,0)';
-    setTimeout(() => {
-        card.style.transition = '';
-        resetCardPosition(card);
-    }, 300);
+function searchCards(query) {
+    const cards = document.querySelectorAll('.card');
+    cards.forEach(card => {
+        const name = card.dataset.name;
+        card.style.display = name.includes(query) ? 'block' : 'none';
+    });
 }
 
-function showEmoji(card, emoji) {
-    const pop = document.createElement('div');
-    pop.className = 'emoji-pop';
-    pop.innerText = emoji;
-    card.appendChild(pop);
-    setTimeout(() => pop.remove(), 800);
-}
+// --- 5. 遊戲階段邏輯 ---
+nextBtn.onclick = () => {
+    if (selectedItems.length === 0) return alert("請先選取圖片！");
+    nextBtn.classList.add('hidden');
+    // 這裡接入你之前的遊戲邏輯 (by-category 或 free)
+    alert("遊戲開始！即將載入拖放區域...");
+};
 
-function checkAllDone() {
-    if (document.getElementById('source-container').querySelectorAll('.card').length === 0) {
-        triggerWin();
-    }
-}
-
-function triggerWin(isManual = false) {
-    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-    playSound('hooray');
-}
-
-// 控制項
+// --- 6. 頂部控制項 ---
 document.getElementById('sizeSlider').oninput = (e) => {
     document.documentElement.style.setProperty('--card-size', e.target.value + 'px');
 };
-
 document.getElementById('textToggle').onchange = (e) => {
-    document.body.classList.toggle('no-text', !e.target.checked);
-};
-
-document.getElementById('bgSelect').onchange = (e) => {
-    const val = e.target.value;
-    document.body.className = val === 'white' ? '' : 'bg-grass';
-    document.body.style.background = val === 'white' ? 'white' : `url('images/${val}') center/cover fixed`;
-};
-
-// 匯出功能
-document.getElementById('exportBtn').onclick = () => {
-    html2canvas(document.body).then(canvas => {
-        const link = document.createElement('a');
-        link.download = '學習成果.png';
-        link.href = canvas.toDataURL();
-        link.click();
-    });
+    document.body.classList.toggle('hide-text', !e.target.checked);
 };
