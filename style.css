@@ -4,9 +4,8 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    /* Sets park.jpg as the default starting background */
     background-image: url('images/park.jpg'); 
-    background-color: #f0f2f5; /* Fallback color */
+    background-color: #f0f2f5;
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
@@ -17,32 +16,47 @@ body {
     display: flex;
     flex-direction: column;
     height: 100vh;
-    max-width: 1200px;
+    width: 100%; /* Changed from max-width to 100% for full-width bar */
     margin: 0 auto;
 }
 
+/* --- THE NEW UNIFIED TOP BAR --- */
 .game-header {
-    background: #2c3e50;
-    color: white;
-    padding: 15px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-shrink: 0;
-}
-
-.nav-group { display: flex; gap: 10px; }
-
-.settings-bar {
-    background: rgba(255, 255, 255, 0.9); /* Slight transparency looks better over the park image */
+    background: white; /* Requirement: White background */
     padding: 10px 20px;
     display: flex;
+    justify-content: space-between; /* Aligns buttons left, settings right */
     align-items: center;
-    gap: 15px;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 2px solid #ddd;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     flex-shrink: 0;
+    z-index: 1000;
+    position: sticky;
+    top: 0;
 }
 
+/* Grouping containers for alignment */
+.header-left-group, .header-right-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Right side labels styling */
+.header-right-group label {
+    font-size: 0.9rem;
+    color: #333;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+#sizeSlider {
+    width: 80px;
+}
+
+/* --- GAME STAGE --- */
 #game-stage {
     flex-grow: 1;
     overflow-y: auto;
@@ -50,7 +64,7 @@ body {
     position: relative;
 }
 
-/* 3D Star Button */
+/* --- 3D STAR BUTTON --- */
 .naming-main {
     display: flex;
     flex-direction: column;
@@ -72,6 +86,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    margin: 20px auto;
     -webkit-tap-highlight-color: transparent;
 }
 
@@ -80,14 +95,16 @@ body {
     box-shadow: 0 5px 0 #d35400;
 }
 
-/* UI Helpers */
+/* --- UI HELPERS --- */
 .nav-btn {
-    padding: 10px 20px;
+    padding: 8px 18px;
     border-radius: 8px;
     border: none;
     color: white;
     font-weight: bold;
     cursor: pointer;
+    font-size: 0.95rem;
+    white-space: nowrap;
 }
 .btn-sorting { background: #3498db; }
 .btn-naming { background: #e67e22; }
@@ -115,8 +132,10 @@ body {
     max-height: 150px; 
     object-fit: contain; 
 }
+
 .hide-text p { display: none !important; }
 
+/* --- TIMER & NAMING MODES --- */
 .time-btn, .mode-btn {
     padding: 10px;
     background: #fff;
@@ -130,6 +149,7 @@ body {
     color: white;
     border-color: #d35400;
 }
+
 .game-play-area {
     display: flex;
     flex-direction: column;
@@ -137,40 +157,15 @@ body {
     justify-content: flex-start;
     height: 100%;
 }
+
+#final-report {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+}
+
 #final-report .select-item.active {
     background: #d4edda;
     border-color: #28a745;
     transform: scale(0.95);
-}
-
-.top-bar {
-    display: flex;
-    justify-content: space-between; /* Pushes left and right groups apart */
-    align-items: center;           /* Vertically centers all items */
-    background-color: white;
-    padding: 10px 20px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    flex-wrap: nowrap;             /* Prevents breaking into two lines */
-    gap: 15px;
-}
-
-/* Grouping containers */
-.nav-group, .settings-group {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-/* Ensuring labels and inputs look tidy */
-.settings-group label {
-    font-size: 0.9rem;
-    color: #666;
-    white-space: nowrap;
-}
-
-.settings-group input[type="range"] {
-    width: 80px;
 }
