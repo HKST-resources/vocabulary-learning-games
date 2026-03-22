@@ -268,7 +268,7 @@ const vocabList = bulkVocabData.split('\n').map((line, i) => {
 let selectedCards = [];
 let gameType = 'fixed';
 
-// 1. Slider & UI Controls
+// 1. Slider & Settings
 document.getElementById('sizeSlider').addEventListener('input', (e) => {
     document.documentElement.style.setProperty('--img-size', `${e.target.value}px`);
 });
@@ -280,11 +280,8 @@ document.getElementById('bgPicker').addEventListener('change', (e) => {
 
 function toggleTextDisplay() {
     const stage = document.getElementById('game-stage');
-    if (document.getElementById('textToggle').checked) {
-        stage.classList.remove('hide-text');
-    } else {
-        stage.classList.add('hide-text');
-    }
+    const isVisible = document.getElementById('textToggle').checked;
+    isVisible ? stage.classList.remove('hide-text') : stage.classList.add('hide-text');
 }
 
 // 2. Navigation
@@ -378,7 +375,7 @@ function proceed() {
     gameType === 'free' ? runChallenge() : renderPrep();
 }
 
-// 3. Preparation Board
+// 3. Prep Page
 function renderPrep() {
     const stage = document.getElementById('game-stage');
     const cats = [...new Set(selectedCards.map(c => c.category))];
@@ -387,7 +384,7 @@ function renderPrep() {
             <button class="nav-btn" style="background:#999; margin-bottom:20px;" onclick="renderSelectionPage()">⇠ 返回修改</button>
             <div class="bin-container">
                 ${cats.map((cat, i) => `
-                    <div class="bin">
+                    <div class="bin" style="flex:none; height:180px;">
                         <div class="bin-header" style="background:${categoryColors[i % categoryColors.length]}">
                             <img src="images/categories/${cat}.png" onerror="this.style.display='none'">
                             <span>${cat}</span>
@@ -402,10 +399,11 @@ function renderPrep() {
     toggleTextDisplay();
 }
 
-// 4. Game Challenge
+// 4. Challenge Page (Locked Height)
 function runChallenge() {
     const stage = document.getElementById('game-stage');
     const cats = gameType === 'fixed' ? [...new Set(selectedCards.map(c => c.category))] : ["籃子 1", "籃子 2"];
+    
     stage.innerHTML = `
         <div class="challenge-layout">
             <div id="pool" class="challenge-pool"></div>
@@ -419,7 +417,7 @@ function runChallenge() {
                         <div class="drop-zone" data-cat="${cat}"></div>
                     </div>`).join('')}
             </div>
-            <button class="nav-btn" style="position:absolute; bottom:15px; left:15px; background:#999; z-index:100;" onclick="renderSelectionPage()">退出</button>
+            <button class="nav-btn" style="position:absolute; bottom:10px; left:10px; background:#999; z-index:100; font-size:0.8rem;" onclick="renderSelectionPage()">退出</button>
         </div>`;
 
     const pool = document.getElementById('pool');
@@ -440,7 +438,7 @@ function runChallenge() {
             }
         }});
     });
-    document.getElementById('current-game-title').innerText = "進行活動中";
+    document.getElementById('current-game-title').innerText = "分類挑戰中";
     toggleTextDisplay();
 }
 
@@ -462,7 +460,6 @@ function finish() {
 async function takeScreenshot() {
     const canvas = await html2canvas(document.getElementById('capture-area'), { useCORS: true, scale: 2 });
     const link = document.createElement('a');
-    link.download = `活動紀錄_${new Date().getTime()}.png`;
-    link.href = canvas.toDataURL();
-    link.click();
+    link.download = `活動_${new Date().getTime()}.png`;
+    link.href = canvas.toDataURL(); link.click();
 }
