@@ -1,205 +1,84 @@
 :root {
-    --img-size: 150px;
-    --green-success: #2ecc71;
-    --orange-theme: #f39c12;
+    --card-size: 150px;
+    --blue: #3498db; --orange: #e67e22; --grey: #bdc3c7; --green: #2ecc71;
 }
 
-body {
-    font-family: 'Segoe UI', "Microsoft JhengHei", sans-serif;
-    margin: 0;
-    padding: 0;
-    height: 100vh;
-    overflow: hidden;
-    background-color: #f0f2f5;
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
+body { margin: 0; font-family: "Microsoft JhengHei", sans-serif; transition: background 0.3s; }
+.bg-grass { background: url('images/park.jpg') center/cover fixed; }
+.hidden { display: none !important; }
+
+/* 1. 頂部導航欄 */
+.top-bar {
+    position: fixed; top: 0; left: 0; width: 100%; height: 60px;
+    background: white; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 20px; box-sizing: border-box; z-index: 1000;
 }
 
-#game-container {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
+.pill-btn {
+    border: none; border-radius: 10px; padding: 8px 25px; color: white;
+    font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.2s;
+}
+.btn-blue { background: var(--blue); }
+.btn-orange { background: var(--orange); }
+.btn-grey { background: var(--grey); }
+.btn-green { background: var(--green); }
+.pill-btn:active { transform: scale(0.95); }
+
+.right-controls { display: flex; align-items: center; gap: 15px; font-size: 14px; }
+.ctrl-group { display: flex; align-items: center; gap: 5px; }
+
+/* 2. 主舞台與中央訊息 */
+#main-stage { margin-top: 60px; min-height: calc(100vh - 60px); position: relative; }
+.center-msg { height: 70vh; display: flex; justify-content: center; align-items: center; color: #7f8c8d; }
+
+/* 3. 遊戲模式選擇 (大按鈕) */
+.mode-menu { display: flex; justify-content: center; align-items: center; height: 70vh; gap: 40px; }
+.big-mode-btn {
+    width: 320px; height: 180px; border-radius: 25px; border: none;
+    color: white; font-size: 36px; font-weight: bold; cursor: pointer;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
 }
 
-/* --- TOOLBAR --- */
-.game-header {
-    background: rgba(255, 255, 255, 0.95);
-    padding: 10px 25px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 2px solid #ddd;
-    z-index: 1000;
+/* 4. 圖片選取頁導航 */
+.selection-nav {
+    background: rgba(255,255,255,0.9); border-radius: 50px; margin: 20px auto;
+    width: 95%; display: flex; align-items: center; padding: 10px 20px;
+    gap: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+.search-container {
+    flex-grow: 1; position: relative; display: flex; align-items: center;
+}
+.search-container i { position: absolute; left: 15px; color: #999; }
+.search-input {
+    width: 100%; padding: 12px 12px 12px 40px; border-radius: 30px;
+    border: 2px solid #f1c40f; font-size: 18px; outline: none;
+}
+.nav-select { padding: 10px; border-radius: 10px; border: 1px solid #ccc; font-size: 16px; }
+
+/* 5. 分類標題與網格 */
+.category-header-bar {
+    background: var(--orange); color: white; padding: 10px 25px;
+    border-radius: 15px; margin: 20px; display: flex;
+    justify-content: space-between; align-items: center;
+}
+.grid-container {
+    display: grid; grid-template-columns: repeat(auto-fill, var(--card-size));
+    gap: 20px; padding: 0 20px 100px 20px; justify-content: center;
 }
 
-.toolbar-left, .toolbar-right {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    font-weight: bold;
+/* 6. 卡片設計 */
+.card {
+    background: white; border-radius: 20px; padding: 15px;
+    text-align: center; box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+    transition: 0.3s; cursor: pointer;
 }
+.card img { width: 100%; border-radius: 10px; pointer-events: none; }
+.card-label { margin-top: 10px; font-weight: bold; font-size: 18px; }
+.card.selected { outline: 5px solid var(--green); transform: scale(0.95); }
 
-/* --- SELECTION PAGE LAYOUT --- */
-.selection-screen {
-    height: 100%;
-    overflow-y: auto;
-    padding: 20px;
-    box-sizing: border-box;
-}
-
-.selection-controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: white;
-    padding: 15px 30px;
-    border-radius: 50px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    margin-bottom: 30px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-}
-
-/* Large Category Menu */
-#catJumpMenu {
-    font-size: 1.3rem;
-    padding: 10px 20px;
-    border-radius: 12px;
-    border: 3px solid var(--orange-theme);
-    font-weight: bold;
-    cursor: pointer;
-}
-
-/* Short Right-Aligned Search */
-#vocabSearch {
-    width: 220px;
-    padding: 12px 20px;
-    border-radius: 25px;
-    border: 2px solid #ddd;
-    outline: none;
-    font-size: 1rem;
-}
-
-/* --- GRID & CARDS --- */
-.selection-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-    gap: 20px;
-    width: 100%;
-}
-
-.select-item {
-    background: white;
-    border: 4px solid #eee;
-    border-radius: 20px;
-    padding: 15px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    position: relative; /* Essential for floating emojis */
-}
-
-/* Green Active State */
-.select-item.active {
-    border-color: var(--green-success) !important;
-    background-color: #eafaf1 !important;
-    transform: scale(1.05);
-    box-shadow: 0 8px 20px rgba(46, 204, 113, 0.2);
-}
-
-.select-item img {
-    width: var(--img-size);
-    height: auto;
-    object-fit: contain;
-    pointer-events: none;
-}
-
-.select-item p {
-    margin: 10px 0 0 0;
-    font-weight: bold;
-    font-size: 1.1rem;
-    color: #333;
-}
-
-/* --- PROCEED BUTTON --- */
-.btn-proceed {
-    background: var(--green-success);
-    color: white;
-    border: none;
-    font-size: 1.6rem;
-    padding: 15px 60px;
-    border-radius: 50px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: transform 0.2s;
-}
-
-.btn-proceed:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(39, 174, 96, 0.4);
-}
-
-/* --- CHALLENGE PHASE --- */
-.prep-container {
-    display: flex;
-    flex-wrap: nowrap;
-    gap: 25px;
-    overflow-x: auto;
-    padding: 10px;
-}
-
-.prep-bin {
-    min-width: 320px;
-    background: rgba(255,255,255,0.9);
-    border-radius: 25px;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-}
-
-/* Floating Feedback Emojis */
-.feedback-overlay {
-    position: absolute;
-    top: -45px; /* Floats above the card boundary */
-    right: -10px;
-    font-size: 3.5rem;
-    z-index: 200;
-    pointer-events: none;
-    text-shadow: 2px 4px 8px rgba(0,0,0,0.3);
-    animation: popIn 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-}
-
-@keyframes popIn {
-    0% { transform: scale(0); opacity: 0; }
-    100% { transform: scale(1); opacity: 1; }
-}
-
-/* Dragging "Follow Finger" Styles */
-.sortable-drag {
-    opacity: 0.95 !important;
-    transform: rotate(5deg) scale(1.1) !important;
-    cursor: grabbing !important;
-    z-index: 5000 !important;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.3) !important;
-}
-
-.sortable-ghost {
-    opacity: 0.3;
-    background: #ccc !important;
-}
-
-/* Helper Classes */
-.hide-text p {
-    display: none !important;
-}
-
-.nav-btn {
-    padding: 10px 20px;
-    border-radius: 12px;
-    border: none;
-    font-weight: bold;
-    cursor: pointer;
-    color: white;
+/* 下一步按鈕定位 */
+.next-step-btn {
+    position: fixed; bottom: 30px; right: 40px; z-index: 1100;
+    padding: 20px 40px; font-size: 24px; border-radius: 50px;
+    box-shadow: 0 8px 20px rgba(46, 204, 113, 0.4);
 }
