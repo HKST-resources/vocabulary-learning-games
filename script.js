@@ -341,19 +341,29 @@ function startSelection(type) {
 function renderSelectionPage() {
     const stage = document.getElementById('game-stage');
     const cats = [...new Set(vocabList.map(v => v.category))];
+    
     stage.innerHTML = `
-        <div class="selection-screen">
-            <div class="selection-controls" style="background: rgba(255,255,255,0.9); padding: 10px; border-radius: 10px; margin-bottom: 15px;">
-                <button class="nav-btn" style="background:#999;" onclick="initGame('${currentGameMode}')">⇠ 返回</button>
-                <select id="catJumpMenu" onchange="const el = document.getElementById(this.value); if(el) el.scrollIntoView();" style="padding: 8px;">
-                    <option value="">快速跳轉...</option>
-                    ${cats.map(c => `<option value="cat-${c}">${c}</option>`).join('')}
-                </select>
-                <input type="text" id="vocabSearch" placeholder="🔍 搜尋詞彙..." onkeyup="updateSelectionList(this.value)" style="padding: 8px; width: 200px;">
+        <div class="selection-screen" style="padding-bottom: 100px;">
+            <div class="selection-controls">
+                <button class="nav-btn btn-back-selection" onclick="initGame('${currentGameMode}')">⇠ 返回</button>
+                
+                <div style="display: flex; align-items: center; gap: 10px; flex-grow: 1;">
+                    <select id="catJumpMenu" onchange="const el = document.getElementById(this.value); if(el) el.scrollIntoView({behavior: 'smooth', block: 'center'});" 
+                            style="padding: 8px 12px; border-radius: 20px; border: 2px solid #ddd;">
+                        <option value="">🚀 跳轉至...</option>
+                        ${cats.map(c => `<option value="cat-${c}">${c}</option>`).join('')}
+                    </select>
+                    
+                    <input type="text" id="vocabSearch" placeholder="🔍 搜尋詞彙..." onkeyup="updateSelectionList(this.value)">
+                </div>
             </div>
-            <div id="selection-scroll-area" style="max-height: 60vh; overflow-y: auto;"></div>
-            <div class="selection-footer" style="text-align: center; padding: 20px;">
-                <button class="nav-btn btn-naming" style="width:80%; font-size:1.6rem; padding:20px;" onclick="proceed()">下一步 (已選: <span id="selCount">0</span>) ➔</button>
+
+            <div id="selection-scroll-area"></div>
+
+            <div class="selection-footer">
+                <button class="btn-proceed" onclick="proceed()">
+                    下一步 (已選: <span id="selCount">0</span>) ➔
+                </button>
             </div>
         </div>`;
     updateSelectionList();
@@ -363,24 +373,38 @@ function updateSelectionList(query = "") {
     const container = document.getElementById('selection-scroll-area');
     const cats = [...new Set(vocabList.map(v => v.category))];
     let html = "";
+
     cats.forEach(cat => {
         const items = vocabList.filter(v => v.category === cat && v.name.includes(query));
         if (items.length > 0) {
-            html += `<div class="category-section" id="cat-${cat}" style="margin-bottom: 30px;">
-                <div class="category-header" style="background:#ecf0f1; padding: 10px; font-weight: bold; display: flex; justify-content: space-between;">
-                    <span>${cat}</span>
-                    <button class="nav-btn" style="background:#7f8c8d; font-size: 0.8rem;" onclick="toggleCat('${cat}')">全選 / 取消</button>
-                </div>
-                <div class="selection-grid">${items.map(item => {
-                    const active = selectedCards.some(c => c.id === item.id) ? 'active' : '';
-                    return `<div class="select-item ${active}" onclick="toggleCard(${item.id})"><img src="images/${item.img}"><p>${item.name}</p></div>`;
-                }).join('')}</div>
-            </div>`;
+            const allIn = items.every(i => selectedCards.some(s => s.id === i.id));
+            
+            html += `
+                <div class="category-section" id="cat-${cat}" style="margin-bottom: 40px;">
+                    <div class="category-header" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; background: #f8f9fa; border-left: 5px solid #3498db; border-radius: 5px; margin-bottom: 15px;">
+                        <span style="font-weight: bold; font-size: 1.2rem; color: #2c3e50;">${cat}</span>
+                        <button class="nav-btn" style="background: ${allIn ? '#e74c3c' : '#3498db'}; font-size: 0.8rem; padding: 5px 15px;" 
+                                onclick="toggleCat('${cat}')">
+                            ${allIn ? '取消全選' : '全選本類'}
+                        </button>
+                    </div>
+                    <div class="selection-grid">
+                        ${items.map(item => {
+                            const active = selectedCards.some(c => c.id === item.id) ? 'active' : '';
+                            return `
+                                <div class="select-item ${active}" onclick="toggleCard(${item.id})">
+                                    <img src="images/${item.img}">
+                                    <p style="margin: 8px 0 0 0; font-weight: bold;">${item.name}</p>
+                                </div>`;
+                        }).join('')}
+                    </div>
+                </div>`;
         }
     });
+    
     container.innerHTML = html;
     document.getElementById('selCount').innerText = selectedCards.length;
-    toggleTextDisplay();
+    toggleTextDisplay(); // Maintain "Hide/Show Text" state
 }
 
 function toggleCard(id) {
