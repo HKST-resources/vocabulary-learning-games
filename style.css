@@ -50,7 +50,6 @@ body {
 
 /* --- Game Layouts (The Golden Rule) --- */
 .challenge-layout { display: flex; height: 100%; width: 100%; padding: 15px; gap: 15px; box-sizing: border-box; overflow: hidden; position: relative; }
-
 .challenge-pool { 
     width: 300px; border: 4px dashed #666; border-radius: 20px; padding: 10px;
     display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: min-content; gap: 10px; 
@@ -58,11 +57,11 @@ body {
 }
 .challenge-pool .card img { height: calc(var(--img-size) * 0.6); }
 
-.bin-container { flex-grow: 1; display: flex; flex-direction: column; height: 100%; gap: 10px; overflow-y: auto; } /* Prep Board 允許垂直滾動但保持結構 */
-.challenge-layout .bin-container { overflow: hidden; } /* 遊戲頁面則禁止外層滾動，由 Bin 內部滾動 */
+.bin-container { flex-grow: 1; display: flex; flex-direction: column; height: 100%; gap: 10px; overflow-y: auto; }
+.challenge-layout .bin-container { overflow: hidden; }
 
 .bin { flex: 1; min-height: 180px; display: flex; background: rgba(255,255,255,0.9); border-radius: 20px; border: 3px solid #ddd; overflow: hidden; }
-.challenge-layout .bin { min-height: 0; } /* 挑戰頁面縮小 Bin 以適應螢幕 */
+.challenge-layout .bin { min-height: 0; }
 
 .bin-header { width: 120px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; font-weight: bold; padding: 5px; text-align: center; }
 .bin-header img { width: 50px; height: 50px; object-fit: contain; margin-bottom: 5px; }
@@ -71,14 +70,12 @@ body {
 .drop-zone .card { max-height: 90%; padding: 5px; }
 .drop-zone .card img { height: auto; max-height: calc(var(--img-size) * 0.8); }
 
-/* --- 完成按鈕 (手動結算) --- */
 .btn-finish-trigger {
     background: #27ae60; color: white; border: none; padding: 15px 30px; 
     border-radius: 50px; font-size: 1.5rem; font-weight: bold; cursor: pointer;
     box-shadow: 0 6px 0 #1e8449; position: absolute; bottom: 20px; right: 20px;
-    z-index: 1500; transition: transform 0.1s;
+    z-index: 1500;
 }
-.btn-finish-trigger:active { transform: translateY(4px); box-shadow: 0 2px 0 #1e8449; }
 
 /* Global Feedback FX */
 .feedback-fx { 
