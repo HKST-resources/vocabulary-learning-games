@@ -1,4 +1,4 @@
-const rawDataString = `水果	哈密瓜	水果/哈密瓜.png
+const rawData = `水果	哈密瓜	水果/哈密瓜.png
 水果	士多啤梨	水果/士多啤梨.png
 水果	奇異果	水果/奇異果.png
 水果	提子	水果/提子.png
@@ -256,207 +256,123 @@ const rawDataString = `水果	哈密瓜	水果/哈密瓜.png
 數字	9	數字/9.png
 數字	10	數字/10.png`;
 
-const library = rawDataString.trim().split('\n').map(line => {
-    const [cat, name, path] = line.split('\t');
+const library = rawData.trim().split('\n').map(l => {
+    const [cat, name, path] = l.split('\t');
     return { cat, name, path: `images/${path}` };
 });
 
-const categories = [...new Set(library.map(i => i.cat))];
 let selectedItems = [];
-let currentGameMode = '';
-const nextBtn = document.getElementById('global-next-btn');
-const mainStage = document.getElementById('main-stage');
+let gameMode = '';
 
-// 初始化
-document.getElementById('bgSelect').onchange = (e) => {
-    const val = e.target.value;
-    document.body.style.background = val === 'white' ? 'white' : `url('images/${val}') center/cover fixed`;
+// 切換顯示
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+    document.getElementById(id).classList.remove('hidden');
+}
+
+// 啟動選單
+document.getElementById('btn-sort-game').onclick = () => {
+    selectedItems = [];
+    showScreen('mode-selection');
+    document.getElementById('welcome-prompt').classList.add('hidden');
 };
 
-// 2. 修正初始顯示：確保懸浮按鈕隱藏
-window.onload = () => nextBtn.classList.add('hidden');
+function startSelection(mode) {
+    gameMode = mode;
+    showScreen('picture-selection');
+    renderGrid();
+}
 
-// 分類遊戲選單
-document.getElementById('nav-btn-sort').onclick = () => {
-    nextBtn.classList.add('hidden'); // 確保進入選單時隱藏按鈕
-    mainStage.innerHTML = `
-        <div style="display:flex; justify-content:center; gap:20px; margin-top:150px;">
-            <button class="pill-btn btn-blue" style="width:180px; height:80px; font-size:22px;" onclick="enterSelection('by-category')">按類別分類</button>
-            <button class="pill-btn btn-orange" style="width:180px; height:80px; font-size:22px;" onclick="enterSelection('free')">自由分類</button>
-        </div>`;
-};
-
-// 3. 圖片選取頁面 (恢復搜尋與跳轉)
-function enterSelection(mode) {
-    currentGameMode = mode;
-    mainStage.innerHTML = `
-        <div style="background:white; padding:10px 20px; position:sticky; top:65px; z-index:100; border-bottom:1px solid #ddd; display:flex; gap:10px; align-items:center;">
-            <button class="pill-btn btn-grey" onclick="location.reload()">返回</button>
-            <select class="pill-btn" style="background:white; color:#333; border:1px solid #ccc;" onchange="document.getElementById(this.value).scrollIntoView({behavior:'smooth', block:'center'})">
-                <option value="">🚀 跳轉至...</option>
-                ${categories.map(c => `<option value="cat-section-${c}">${c}</option>`).join('')}
-            </select>
-            <input type="text" id="searchInput" placeholder="搜尋詞彙..." style="flex:1; padding:8px; border-radius:8px; border:1px solid #ccc;" oninput="filterCards(this.value)">
+function renderGrid() {
+    const grid = document.getElementById('picture-grid');
+    grid.innerHTML = library.map(item => `
+        <div class="card" onclick="toggleItem(this, '${item.path}')" data-path="${item.path}" data-cat="${item.cat}">
+            <img src="${item.path}">
+            <div class="card-label">${item.name}</div>
         </div>
-        <div id="cards-container">
-            ${categories.map(cat => `
-                <div id="cat-section-${cat}">
-                    <div style="background:#eee; padding:5px 15px; font-size:14px; color:#666;">${cat}</div>
-                    <div class="grid-layout">
-                        ${library.filter(i => i.cat === cat).map(i => renderCardHTML(i, true)).join('')}
-                    </div>
-                </div>
-            `).join('')}
-        </div>`;
-    updateNextButton();
+    `).join('');
 }
 
-function renderCardHTML(item, isSelectable) {
-    const isSel = selectedItems.some(s => s.path === item.path);
-    return `<div class="card ${isSel && isSelectable ? 'selected' : ''}" 
-            data-cat="${item.cat}" data-path="${item.path}" data-name="${item.name}"
-            ${isSelectable ? 'onclick="toggleCard(this)"' : ''}>
-            <img src="${item.path}"><div class="card-label">${item.name}</div></div>`;
+function toggleItem(el, path) {
+    el.classList.toggle('selected');
+    const item = library.find(i => i.path === path);
+    if (el.classList.contains('selected')) {
+        selectedItems.push(item);
+    } else {
+        selectedItems = selectedItems.filter(i => i.path !== path);
+    }
+    const btn = document.getElementById('proceed-btn');
+    btn.innerText = `下一步（已選：${selectedItems.length}）`;
+    btn.classList.toggle('hidden', selectedItems.length === 0);
 }
 
-function toggleCard(el) {
-    const item = { cat: el.dataset.cat, path: el.dataset.path, name: el.dataset.name };
-    const idx = selectedItems.findIndex(s => s.path === item.path);
-    if (idx > -1) { selectedItems.splice(idx, 1); el.classList.remove('selected'); }
-    else { selectedItems.push(item); el.classList.add('selected'); }
-    updateNextButton();
+function proceedToNext() {
+    showScreen('game-stage');
+    renderGame();
 }
 
-function updateNextButton() {
-    nextBtn.innerText = `下一步 (已選: ${selectedItems.length}) ➔`;
-    nextBtn.classList.toggle('hidden', selectedItems.length === 0);
-}
-
-function filterCards(query) {
-    document.querySelectorAll('.card').forEach(card => {
-        const match = card.dataset.name.includes(query);
-        card.style.display = match ? 'block' : 'none';
-    });
-}
-
-// 4. 準備看板頁面
-nextBtn.onclick = () => {
-    nextBtn.classList.add('hidden'); // 移除「下一步」按鈕
-    if (currentGameMode === 'by-category') renderPrepBoard();
-    else renderGameStage();
-};
-
-function renderPrepBoard() {
-    const catsInGame = [...new Set(selectedItems.map(i => i.cat))];
-    mainStage.innerHTML = `
-        <div style="padding:15px; text-align:center;">
-            <button class="pill-btn btn-grey" onclick="enterSelection('${currentGameMode}')">返回修改</button>
-        </div>
-        <div style="display:flex; justify-content:center; gap:20px; flex-wrap:wrap; padding:10px;">
-            ${catsInGame.map(cat => `
-                <div class="category-box" style="border-color:var(--orange)">
-                    <div class="cat-header" style="background:var(--orange)">${cat}</div>
-                    <div class="grid-layout">${selectedItems.filter(i => i.cat === cat).map(i => renderCardHTML(i, false)).join('')}</div>
+function renderGame() {
+    const stage = document.getElementById('game-stage');
+    const cats = [...new Set(selectedItems.map(i => i.cat))];
+    
+    stage.innerHTML = `
+        <div id="shuffle-area" class="grid-layout" style="min-height:150px; border:2px dashed white; margin-bottom:20px;"></div>
+        <div style="display:flex; justify-content:center; flex-wrap:wrap;">
+            ${cats.map(c => `
+                <div class="category-box" data-cat="${c}">
+                    <div class="cat-header">${c}</div>
+                    <div class="drop-zone grid-layout" style="min-height:150px;"></div>
                 </div>
             `).join('')}
         </div>
-        <div style="text-align:center; padding:30px;">
-            <button class="pill-btn btn-orange" style="height:60px; padding:0 50px; font-size:24px; border-radius:30px;" onclick="renderGameStage()">開始遊戲 🚀</button>
-        </div>`;
-}
+    `;
 
-// 5 & 6. 遊戲階段 (恢復音效、動畫、流暢度)
-function renderGameStage() {
-    nextBtn.classList.add('hidden');
-    const catsInGame = currentGameMode === 'free' ? ['分類區 A', '分類區 B'] : [...new Set(selectedItems.map(i => i.cat))];
-    
-    mainStage.innerHTML = `
-        <div style="margin-top:80px; padding:10px;">
-            <div id="shuffle-box" class="grid-layout" style="background:rgba(255,255,255,0.2); border:3px dashed #fff; border-radius:20px; min-height:120px; margin-bottom:20px;"></div>
-            <div style="display:flex; justify-content:center; gap:20px; flex-wrap:wrap;">
-                ${catsInGame.map(cat => `
-                    <div class="category-box target-zone" data-target="${currentGameMode === 'free' ? 'any' : cat}" style="border-color:var(--blue)">
-                        <div class="cat-header" style="background:var(--blue)">${cat}</div>
-                        <div class="inner-zone grid-layout" style="min-height:150px;"></div>
-                    </div>
-                `).join('')}
-            </div>
-            ${currentGameMode === 'free' ? `
-                <div style="text-align:center; padding:20px;">
-                    <button class="pill-btn btn-orange" style="height:50px; font-size:20px;" onclick="celebrate()">完成遊戲</button>
-                </div>` : ''}
-        </div>`;
-    
-    const shuffleBox = document.getElementById('shuffle-box');
-    [...selectedItems].sort(() => Math.random() - 0.5).forEach(item => {
-        shuffleBox.innerHTML += renderCardHTML(item, false);
+    const shuffle = document.getElementById('shuffle-area');
+    selectedItems.forEach(item => {
+        shuffle.innerHTML += `<div class="card" data-cat="${item.cat}"><img src="${item.path}"><div class="card-label">${item.name}</div></div>`;
     });
-    
-    initInteract();
+
+    initDrag();
 }
 
-function initInteract() {
+function initDrag() {
     interact('.card').draggable({
-        inertia: true,
-        modifiers: [interact.modifiers.restrictRect({ restriction: 'window', endOnly: true })],
         listeners: {
             move(event) {
                 const t = event.target;
                 const x = (parseFloat(t.getAttribute('data-x')) || 0) + event.dx;
                 const y = (parseFloat(t.getAttribute('data-y')) || 0) + event.dy;
-                // 使用 translate3d 提高流暢度
-                t.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+                t.style.transform = `translate(${x}px, ${y}px)`;
                 t.setAttribute('data-x', x); t.setAttribute('data-y', y);
-                t.style.zIndex = 3000;
+                t.style.zIndex = 1000;
             }
         }
     });
 
-    interact('.target-zone, #shuffle-box').dropzone({
-        overlap: 0.3,
+    interact('.drop-zone, #shuffle-area').dropzone({
+        overlap: 0.1,
         ondrop(event) {
             const card = event.relatedTarget;
             const zone = event.currentTarget;
-            const isTargetZone = zone.classList.contains('target-zone');
+            const targetGrid = zone.classList.contains('drop-zone') ? zone : zone;
             
-            if (isTargetZone) {
-                const targetCat = zone.dataset.target;
-                const isCorrect = (targetCat === 'any' || card.dataset.cat === targetCat);
-                
-                // 播放音效與動畫 (僅一次)
-                showFeedback(card, isCorrect);
-                new Audio(isCorrect ? 'sounds/star.mp3' : 'sounds/wrong.mp3').play().catch(()=>{});
-            }
-
-            const targetGrid = isTargetZone ? zone.querySelector('.inner-zone') : zone;
             targetGrid.appendChild(card);
-            
-            // 重置位移
             card.style.transform = "none";
             card.setAttribute('data-x', 0); card.setAttribute('data-y', 0);
-            card.style.zIndex = "";
 
-            // 自動檢查完成
-            if (currentGameMode === 'by-category' && document.getElementById('shuffle-box').children.length === 0) {
-                setTimeout(celebrate, 500);
+            if (zone.classList.contains('drop-zone')) {
+                const isCorrect = card.dataset.cat === zone.parentElement.dataset.cat;
+                const emo = document.createElement('div');
+                emo.className = 'feedback-emoji';
+                emo.innerText = isCorrect ? '⭐' : '❌';
+                card.appendChild(emo);
+                new Audio(isCorrect ? 'sounds/star.mp3' : 'sounds/wrong.mp3').play().catch(()=>{});
+                setTimeout(() => emo.remove(), 600);
             }
         }
     });
 }
 
-function showFeedback(el, correct) {
-    const emo = document.createElement('div');
-    emo.className = 'feedback-emoji';
-    emo.innerText = correct ? '⭐' : '❌';
-    el.appendChild(emo);
-    setTimeout(() => emo.remove(), 600);
-}
-
-function celebrate() {
-    new Audio('sounds/hooray.mp3').play().catch(()=>{});
-    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-}
-
-// 工具列控制
+document.getElementById('bgSelect').onchange = (e) => document.body.style.background = `url('images/${e.target.value}') center/cover fixed`;
 document.getElementById('sizeSlider').oninput = (e) => document.documentElement.style.setProperty('--card-size', e.target.value + 'px');
-document.getElementById('textToggle').onchange = (e) => document.body.classList.toggle('show-text', e.target.checked);
+document.getElementById('textToggle').onchange = (e) => document.body.classList.toggle('no-text', !e.target.checked);
