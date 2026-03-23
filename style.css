@@ -1,101 +1,64 @@
 :root {
-    --card-size: 110px;
-    --blue: #4BD8F8; --pink: #FB6764; --green: #80B816;
-    --grey: #bdc3c7; --dark-grey: #555;
-    --bar-height: 40px;
+    --card-size: 150px;
+    --blue: #3498db;
+    --orange: #e67e22; /* 行動按鈕的主色 */
+    --grey: #bdc3c7;
+    --green: #2ecc71; /* 綠色僅用於匯出與對齊 */
 }
 
-body { 
-    margin: 0; font-family: "Microsoft JhengHei", sans-serif; 
-    background: url('images/park.jpg') center/cover fixed;
-    user-select: none; -webkit-user-select: none;
-    touch-action: none; /* iPad 遊戲感關鍵：禁用預設縮放與滾動 */
-    overflow: hidden; /* 防止主頁面出現滾動條 */
-}
+body { margin: 0; font-family: "Microsoft JhengHei", "Heiti TC", sans-serif; transition: background 0.3s; overflow-x: hidden; touch-action: manipulation; -webkit-user-select: none; user-select: none; }
+.bg-grass { background: url('images/park.jpg') center/cover fixed; }
+.hidden { display: none !important; }
 
-/* 頂部工具欄 - 恢復原始比例 */
+/* 頂部欄固定白色 */
 .top-bar {
     position: fixed; top: 0; left: 0; width: 100%; height: 60px;
     background: white; display: flex; align-items: center; justify-content: space-between;
-    padding: 0 15px; box-sizing: border-box; z-index: 2000; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    padding: 0 20px; box-sizing: border-box; z-index: 2000; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
+.left-group, .right-group { display: flex; align-items: center; gap: 10px; }
 
-.pill-btn { 
-    border: none; border-radius: 10px; padding: 0 18px; color: white; 
-    font-weight: bold; cursor: pointer; font-size: 16px; /* 恢復原始字體 */
-    height: var(--bar-height); line-height: var(--bar-height); white-space: nowrap;
-}
-.btn-blue { background: #3498db; }
-.btn-orange { background: #e67e22; }
+/* 按鈕美學 */
+.pill-btn, .game-btn, .back-btn { border: none; border-radius: 10px; padding: 10px 25px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 16px; }
+.btn-blue { background: var(--blue); }
+.btn-orange { background: var(--orange); }
 .btn-grey { background: var(--grey); }
-.btn-export { background: var(--green); }
+.btn-green { background: var(--green); }
+.back-btn { background: #666; margin: 10px; }
 
-.right-controls { display: flex; align-items: center; gap: 10px; font-size: 15px; }
+/* 選取面板導航 */
+.selection-nav { position: sticky; top: 60px; background: rgba(255,255,255,0.95); padding: 10px; border-bottom: 1px solid #ddd; z-index: 900; }
+#category-jumper { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 10px; padding: 5px; }
+#category-jumper button { white-space: nowrap; padding: 6px 15px; border-radius: 20px; border: 1px solid #ccc; background: white; cursor: pointer; }
+#wordSearch { width: 100%; padding: 12px; border-radius: 12px; border: 3px solid #f1c40f; font-size: 18px; box-sizing: border-box; }
 
-/* 懸浮下一步按鈕 */
-.btn-proceed-float { 
-    position: fixed; bottom: 30px; right: 30px; z-index: 2100;
-    background: var(--green); box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    border-radius: 50px; height: 50px; padding: 0 30px;
+/* 卡片 */
+.grid-layout { display: flex; flex-wrap: wrap; justify-content: center; padding: 20px; }
+.card {
+    width: var(--card-size); background: white; border-radius: 15px; padding: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center; display: inline-block;
+    margin: 10px; position: relative; touch-action: none; transition: transform 0.1s;
 }
+.card img { width: 100%; border-radius: 10px; pointer-events: none; }
+.card-label { margin-top: 8px; font-weight: bold; }
+.no-text .card-label { display: none; }
+.selected-card { outline: 5px solid #2ecc71; transform: scale(0.95); } /* 選取仍用綠框 */
 
-/* 卡片系統 */
-.card { 
-    background: white; border-radius: 15px; padding: 10px; text-align: center; 
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1); cursor: grab; 
-    width: var(--card-size); box-sizing: border-box;
-    position: relative; touch-action: none;
-    will-change: transform; /* 硬體加速預處理 */
-}
-.card:active { cursor: grabbing; }
-.card img { width: 100%; border-radius: 8px; pointer-events: none; }
-.card-label { margin-top: 5px; font-weight: bold; font-size: 15px; display: none; }
-body.show-text .card-label { display: block; }
+/* 遊戲階段 (Snapping Grid) */
+.drop-zones-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; padding: 10px; }
 
-/* 準備看板 (Ref 4) */
-#main-stage { margin-top: 65px; height: calc(100vh - 65px); overflow-y: auto; }
+/* 行動按鈕 (開始遊戲/完成) */
+.action-btn { 
+    background: linear-gradient(180deg, #f1c40f, var(--orange)); border: none; color: white; 
+    font-size: 28px; font-weight: bold; padding: 15px 60px; border-radius: 40px; cursor: pointer;
+    box-shadow: 0 8px 0 #d35400; transition: transform 0.1s, box-shadow 0.1s;
+}
+.action-btn:active { transform: translateY(4px); box-shadow: 0 4px 0 #d35400; }
 
-.prep-container { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; padding: 20px; }
-.category-box { 
-    background: rgba(255,255,255,0.92); /* 提高白度 */
-    border-radius: 25px; border: 5px solid; width: 420px; min-height: 200px; overflow: hidden;
+/* 懸浮橙色下一步按鈕 */
+.floating-btn {
+    position: fixed; bottom: 30px; right: 30px; z-index: 1100;
+    font-size: 24px; padding: 20px 40px; border-radius: 50px; 
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2); transition: transform 0.2s, background-color 0.3s;
 }
-.cat-header { 
-    padding: 10px; color: white; font-size: 22px; font-weight: bold;
-    display: flex; align-items: center; justify-content: center; gap: 15px;
-}
-.cat-header img { width: 60px; height: 60px; object-fit: contain; }
-
-.grid-snapper { 
-    display: grid; grid-template-columns: repeat(auto-fill, var(--card-size)); 
-    gap: 12px; padding: 15px; justify-content: center;
-}
-
-/* 遊戲階段 (Ref 5) - 固定佈局防止溢出 */
-.game-screen {
-    display: flex; flex-direction: column; height: calc(100vh - 75px);
-    padding: 10px; box-sizing: border-box;
-}
-.shuffle-area { 
-    border: 3px dashed rgba(255,255,255,0.9); border-radius: 20px; 
-    min-height: 140px; max-height: 30vh; overflow-y: auto;
-    background: rgba(255,255,255,0.4); display: flex; flex-wrap: wrap; 
-    gap: 10px; padding: 15px; justify-content: center; margin-bottom: 10px;
-}
-.game-target-row { 
-    display: flex; justify-content: center; gap: 15px; flex: 1; min-height: 0;
-}
-.target-box { flex: 1; max-width: 500px; display: flex; flex-direction: column; height: 100%; }
-.inner-zone { flex: 1; overflow-y: auto; padding: 10px; }
-
-.btn-game-launch { 
-    background: linear-gradient(180deg, #f1c40f, #e67e22); font-size: 24px; 
-    padding: 12px 50px; border-radius: 40px; box-shadow: 0 5px 0 #d35400; color: white; border: none;
-}
-.btn-finish-small { padding: 10px 40px; font-size: 20px; margin-top: 10px; }
-
-.feedback-emoji {
-    position: absolute; top: 10px; right: 10px; font-size: 40px;
-    z-index: 100; pointer-events: none; animation: popUp 0.6s ease-out forwards;
-}
-@keyframes popUp { 0% { opacity:0; scale:0.5; } 50% { opacity:1; scale:1.2; } 100% { opacity:0; scale:1; } }
+.floating-btn:active { transform: translate(0, 4px) scale(0.98); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
