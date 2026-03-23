@@ -1,4 +1,3 @@
-// --- 1. 資料庫 ---
 const rawData = `水果	哈密瓜	水果/哈密瓜.png
 水果	士多啤梨	水果/士多啤梨.png
 水果	奇異果	水果/奇異果.png
@@ -255,32 +254,38 @@ const rawData = `水果	哈密瓜	水果/哈密瓜.png
 數字	7	數字/7.png
 數字	8	數字/8.png
 數字	9	數字/9.png
-數字	10	數字/10.png`; // 請在此貼上完整清單
+數字	10	數字/10.png`;
 
 const library = rawData.trim().split('\n').map(l => {
     const [cat, name, path] = l.split('\t');
     return { cat, name, path: `images/${path}` };
 });
 
+const catColors = { "水果": "#ff7675", "蔬菜": "#55efc4", "動物": "#ffe66d", "default": "#74b9ff" };
 const categories = [...new Set(library.map(i => i.cat))];
 const mainStage = document.getElementById('main-stage');
 const nextBtn = document.getElementById('global-next-btn');
 let selectedItems = [];
 let currentGameMode = '';
 
-// --- 2. 初始綁定與模式選擇 ---
+// --- 背景切換修復 ---
+document.getElementById('bgSelect').onchange = (e) => {
+    const val = e.target.value;
+    document.body.style.background = val === 'white' ? 'white' : `url('images/${val}') center/cover fixed`;
+};
+
+// --- 分類遊戲啟動 ---
 document.getElementById('nav-btn-sort').onclick = () => {
     selectedItems = [];
     nextBtn.classList.add('hidden');
     mainStage.innerHTML = `
-        <div class="mode-menu" style="display:flex; justify-content:center; align-items:center; height:60vh; gap:30px;">
-            <button class="pill-btn btn-blue" style="width:250px; height:120px; font-size:24px;" onclick="enterSelection('by-category')">按類別分類</button>
-            <button class="pill-btn btn-orange" style="width:250px; height:120px; font-size:24px;" onclick="enterSelection('free')">自由分類</button>
+        <div class="center-msg" style="gap:40px;">
+            <button class="pill-btn btn-blue" style="width:300px; height:150px; font-size:30px; border-radius:25px;" onclick="enterSelection('by-category')">按類別分類</button>
+            <button class="pill-btn btn-orange" style="width:300px; height:150px; font-size:30px; border-radius:25px;" onclick="enterSelection('free')">自由分類</button>
         </div>
     `;
 };
 
-// --- 3. 圖片選取階段 ---
 function enterSelection(mode) {
     currentGameMode = mode;
     renderSelectionUI();
@@ -291,13 +296,13 @@ function enterSelection(mode) {
 function renderSelectionUI() {
     mainStage.innerHTML = `
         <div class="selection-nav">
-            <button class="pill-btn btn-grey nav-height-sync" onclick="location.reload()">返回</button>
-            <select class="nav-select nav-height-sync" onchange="jumpToCat(this.value)">
+            <button class="pill-btn btn-grey nav-height-sync" onclick="location.reload()">← 返回</button>
+            <select class="nav-height-sync" style="width:150px" onchange="jumpToCat(this.value)">
                 <option value="">🚀 跳轉至...</option>
                 ${categories.map(c => `<option value="cat-${c}">${c}</option>`).join('')}
             </select>
-            <div class="search-container">
-                <i class="fa-solid fa-magnifying-glass"></i>
+            <div class="search-container" style="flex-grow:1; position:relative;">
+                <i class="fa-solid fa-magnifying-glass" style="position:absolute; left:15px; top:13px; color:#999;"></i>
                 <input type="text" id="searchInput" class="search-input" placeholder="搜尋詞彙..." oninput="handleSearch(this.value)">
             </div>
         </div>
@@ -309,20 +314,20 @@ function renderGridByCategory() {
     return categories.map(cat => `
         <div class="cat-section" id="cat-${cat}">
             <div class="category-header-bar">
-                <span style="font-size:20px; font-weight:bold;">${cat}</span>
-                <button class="pill-btn btn-dark" style="height:32px; line-height:32px; padding:0 15px;" onclick="selectAllInCategory('${cat}')">全選本類</button>
+                <span style="font-size:22px; font-weight:bold;">${cat}</span>
+                <button class="pill-btn btn-dark" style="height:35px; line-height:35px;" onclick="selectAllInCategory('${cat}')">全選本類</button>
             </div>
-            <div class="grid-container">${library.filter(i => i.cat === cat).map(item => renderCardHTML(item)).join('')}</div>
+            <div class="grid-container">${library.filter(i => i.cat === cat).map(item => renderCardHTML(item, true)).join('')}</div>
         </div>
     `).join('');
 }
 
-function renderCardHTML(item) {
+function renderCardHTML(item, selectable) {
     const isSelected = selectedItems.some(si => si.path === item.path);
     return `
-        <div class="card ${isSelected ? 'selected' : ''}" 
+        <div class="card ${isSelected && selectable ? 'selected' : ''}" 
              data-name="${item.name}" data-cat="${item.cat}" data-path="${item.path}"
-             onclick="handleCardClick(this)">
+             ${selectable ? 'onclick="handleCardClick(this)"' : ''}>
             <img src="${item.path}">
             <div class="card-label">${item.name}</div>
         </div>
@@ -331,90 +336,101 @@ function renderCardHTML(item) {
 
 function handleCardClick(el) {
     const item = { name: el.dataset.name, cat: el.dataset.cat, path: el.dataset.path };
-    const index = selectedItems.findIndex(si => si.path === item.path);
-    if (index > -1) {
-        selectedItems.splice(index, 1);
-        el.classList.remove('selected');
-    } else {
-        selectedItems.push(item);
-        el.classList.add('selected');
-    }
+    const idx = selectedItems.findIndex(si => si.path === item.path);
+    if (idx > -1) { selectedItems.splice(idx, 1); el.classList.remove('selected'); }
+    else { selectedItems.push(item); el.classList.add('selected'); }
     updateNextButton();
 }
 
 function selectAllInCategory(catName) {
-    const section = document.getElementById(`cat-${catName}`);
-    section.querySelectorAll('.card:not(.selected)').forEach(c => handleCardClick(c));
+    document.getElementById(`cat-${catName}`).querySelectorAll('.card:not(.selected)').forEach(c => handleCardClick(c));
 }
 
-function handleSearch(query) {
+function handleSearch(q) {
     const content = document.getElementById('cards-content');
-    if (!query) { content.innerHTML = renderGridByCategory(); return; }
-    const filtered = library.filter(i => i.name.includes(query));
+    if (!q) { content.innerHTML = renderGridByCategory(); return; }
+    const filtered = library.filter(i => i.name.includes(q));
     content.innerHTML = `
-        <div class="category-header-bar"><span>搜尋結果: "${query}"</span></div>
-        <div class="grid-container">${filtered.map(item => renderCardHTML(item)).join('')}</div>
+        <div class="category-header-bar"><span>搜尋結果: "${q}"</span></div>
+        <div class="grid-container">${filtered.map(item => renderCardHTML(item, true)).join('')}</div>
     `;
 }
 
-function jumpToCat(id) {
-    if(!id) return;
-    const el = document.getElementById(id);
-    if(el) window.scrollTo({ top: el.offsetTop - 130, behavior: 'smooth' });
-}
+function jumpToCat(id) { if(id) window.scrollTo({ top: document.getElementById(id).offsetTop - 130, behavior: 'smooth' }); }
+function updateNextButton() { nextBtn.innerHTML = `下一步 (已選: ${selectedItems.length}) <i class="fa-solid fa-arrow-right"></i>`; }
 
-function updateNextButton() {
-    nextBtn.innerHTML = `下一步 (已選: ${selectedItems.length}) <i class="fa-solid fa-arrow-right"></i>`;
-}
-
-// --- 4. 準備看板階段 ---
+// --- 跳轉邏輯 ---
 nextBtn.onclick = () => {
     if (selectedItems.length === 0) return;
     nextBtn.classList.add('hidden');
-    renderPreparationBoard();
+    if (currentGameMode === 'by-category') renderPreparationBoard();
+    else renderGameStage();
 };
 
+// --- 準備看板 (Ref 4) ---
 function renderPreparationBoard() {
     const catsInGame = [...new Set(selectedItems.map(i => i.cat))];
     mainStage.innerHTML = `
-        <div id="drop-zones" class="drop-zone-wrap">
+        <div style="text-align:center; padding: 20px;"><button class="pill-btn btn-grey" onclick="enterSelection('by-category')">← 返回修改</button></div>
+        <div class="prep-container">
             ${catsInGame.map(cat => `
-                <div class="category-box" data-cat="${cat}">
-                    <h3 style="text-align:center;">${cat}</h3>
-                    <div class="inner-zone">
-                        ${selectedItems.filter(i => i.cat === cat).map(item => renderCardHTML(item)).join('')}
+                <div class="prep-box" style="border-color:${catColors[cat] || catColors.default}">
+                    <div class="prep-header">
+                        <img src="images/categories/${cat}.png" onerror="this.style.display='none'">
+                        <span>${cat}</span>
                     </div>
+                    <div class="prep-grid">${selectedItems.filter(i => i.cat === cat).map(i => renderCardHTML(i, false)).join('')}</div>
                 </div>
             `).join('')}
         </div>
-        <div id="source-container" class="source-box hidden"></div>
-        <div style="text-align:center; padding: 40px;">
-            <button id="startGameBtn" class="pill-btn btn-blue" style="font-size:24px; height:60px; padding:0 60px;">開始遊戲</button>
+        <div style="text-align:center; padding: 50px;">
+            <button id="startGameBtn" class="btn-game-start pill-btn">開始遊戲 🚀</button>
         </div>
     `;
-    document.querySelectorAll('.card').forEach(c => c.onclick = null); // 移除點擊選取功能
+    document.getElementById('startGameBtn').onclick = renderGameStage;
 }
 
-// --- 5. 正式洗牌遊戲 ---
-function startActualPlay() {
+// --- 遊戲階段 (Ref 5) ---
+function renderGameStage() {
+    const catsInGame = currentGameMode === 'free' ? ['分類 A', '分類 B'] : [...new Set(selectedItems.map(i => i.cat))];
+    
+    mainStage.innerHTML = `
+        <div class="game-layout">
+            <div id="source-container" class="source-box"></div>
+            <div class="target-area">
+                ${catsInGame.map((cat, idx) => `
+                    <div class="target-box" data-cat="${currentGameMode === 'free' ? 'any' : cat}" 
+                         style="border-color:${currentGameMode === 'free' ? (idx === 0 ? '#ff7675' : '#55efc4') : (catColors[cat] || catColors.default)}">
+                        <div class="prep-header" style="${currentGameMode === 'free' ? 'display:none' : ''}">
+                            <img src="images/categories/${cat}.png" onerror="this.style.display='none'">
+                            <span>${cat}</span>
+                        </div>
+                        <div class="inner-zone prep-grid" style="min-height:200px"></div>
+                    </div>
+                `).join('')}
+            </div>
+            ${currentGameMode === 'free' ? `<div style="text-align:center; padding-bottom:20px;"><button id="finishBtn" class="pill-btn btn-game-start">完成遊戲</button></div>` : ''}
+        </div>
+    `;
+
+    // 洗牌
     const source = document.getElementById('source-container');
-    const cards = Array.from(document.querySelectorAll('.card'));
-    source.classList.remove('hidden');
-    source.innerHTML = "";
-    cards.sort(() => Math.random() - 0.5).forEach(c => {
-        c.classList.remove('selected');
-        source.appendChild(c);
+    [...selectedItems].sort(() => Math.random() - 0.5).forEach(item => {
+        source.innerHTML += renderCardHTML(item, false);
     });
-    document.getElementById('startGameBtn').style.display = 'none';
-    initInteractLogic();
+
+    initInteract();
+
+    if(currentGameMode === 'free') {
+        document.getElementById('finishBtn').onclick = () => {
+            new Audio('sounds/hooray.mp3').play().catch(()=>{});
+            confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 } });
+        };
+    }
 }
 
-// 使用全局監聽處理動態按鈕
-document.addEventListener('click', (e) => {
-    if(e.target.id === 'startGameBtn') startActualPlay();
-});
-
-function initInteractLogic() {
+// --- 拖放邏輯 ---
+function initInteract() {
     interact('.card').draggable({
         inertia: true,
         listeners: {
@@ -423,47 +439,52 @@ function initInteractLogic() {
                 const x = (parseFloat(t.getAttribute('data-x')) || 0) + event.dx;
                 const y = (parseFloat(t.getAttribute('data-y')) || 0) + event.dy;
                 t.style.transform = `translate(${x}px, ${y}px)`;
-                t.setAttribute('data-x', x);
-                t.setAttribute('data-y', y);
+                t.setAttribute('data-x', x); t.setAttribute('data-y', y);
                 t.classList.add('dragging');
             },
             end(event) { event.target.classList.remove('dragging'); }
         }
     });
 
-    interact('.category-box').dropzone({
+    interact('.target-box').dropzone({
         overlap: 0.5,
         ondrop(event) {
             const card = event.relatedTarget;
             const zone = event.currentTarget;
-            if (currentGameMode === 'free' || card.dataset.cat === zone.dataset.cat) {
-                zone.querySelector('.inner-zone').appendChild(card);
-                resetPos(card);
+            const isCorrect = (zone.dataset.cat === 'any' || card.dataset.cat === zone.dataset.cat);
+
+            // 視覺反饋
+            const emoji = document.createElement('div');
+            emoji.className = 'feedback-emoji';
+            emoji.innerText = isCorrect ? '⭐' : '❌';
+            zone.appendChild(emoji);
+            setTimeout(() => emoji.remove(), 600);
+
+            // 音效與位置處理
+            if (isCorrect) {
                 new Audio('sounds/star.mp3').play().catch(()=>{});
-                if(document.getElementById('source-container').children.length === 0) {
-                    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-                }
+                zone.querySelector('.inner-zone').appendChild(card);
             } else {
+                new Audio('sounds/wrong.mp3').play().catch(()=>{});
                 document.getElementById('source-container').appendChild(card);
-                resetPos(card);
+            }
+            
+            card.style.transform = "none";
+            card.setAttribute('data-x', 0); card.setAttribute('data-y', 0);
+
+            // 檢查勝利 (僅限類別模式)
+            if (currentGameMode === 'by-category' && document.getElementById('source-container').children.length === 0) {
+                new Audio('sounds/hooray.mp3').play().catch(()=>{});
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
             }
         }
     });
 }
 
-function resetPos(card) {
-    card.style.transform = "none";
-    card.setAttribute('data-x', 0); card.setAttribute('data-y', 0);
-}
-
-// --- 6. 頂部控制項 ---
+// --- 頂部控制 ---
 document.getElementById('sizeSlider').oninput = (e) => {
     document.documentElement.style.setProperty('--card-size', e.target.value + 'px');
 };
 document.getElementById('textToggle').onchange = (e) => {
     document.body.classList.toggle('show-text', e.target.checked);
-};
-document.getElementById('bgSelect').onchange = (e) => {
-    const val = e.target.value;
-    document.body.style.background = val === 'white' ? 'white' : `url('images/${val}') center/cover fixed`;
 };
