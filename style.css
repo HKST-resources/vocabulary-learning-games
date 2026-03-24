@@ -1,17 +1,18 @@
 :root {
-    --card-size: 130px;
+    --card-size: 120px;
     --pink: #fb6764; 
     --blue: #4bd8f8; 
     --green: #83bb21; 
-    --muted-green: #8da399; /* 新增：粉化綠 */
+    --muted-green: #8da399;
     --orange: #e67e22;
     --grey: #bdc3c7;
 }
 
 body {
-    margin: 0; font-family: "Microsoft JhengHei", "Heiti TC", sans-serif;
+    margin: 0; font-family: "Microsoft JhengHei", sans-serif;
     background: url('images/park.jpg') center/cover fixed;
-    overflow-x: hidden; touch-action: none;
+    overflow: hidden; /* 防止全螢幕模式下出現捲軸 */
+    height: 100vh;
     user-select: none;
 }
 
@@ -19,96 +20,99 @@ body {
 
 /* 頂部導航 */
 .top-bar {
-    position: fixed; top: 0; left: 0; width: 100%; height: 65px;
-    background: white; display: flex; align-items: center; justify-content: space-between;
-    padding: 0 20px; box-sizing: border-box; z-index: 3000; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    height: 65px; background: white; display: flex; align-items: center; 
+    justify-content: space-between; padding: 0 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    z-index: 3000; position: relative;
 }
 
-.nav-left, .nav-right { display: flex; align-items: center; gap: 12px; }
+.nav-left, .nav-right { display: flex; align-items: center; gap: 10px; }
 
-main { padding-top: 85px; min-height: 100vh; box-sizing: border-box; }
-
-/* 3D 按鈕樣式 */
+/* 3D 按鈕 */
 .pill-btn {
-    border: none; border-radius: 12px; padding: 0 20px; color: white;
-    height: 42px; cursor: pointer; font-weight: bold; font-size: 16px;
+    border: none; border-radius: 12px; padding: 0 15px; color: white;
+    height: 42px; cursor: pointer; font-weight: bold;
     display: inline-flex; align-items: center; justify-content: center;
-    transition: all 0.1s; position: relative;
-    box-shadow: 0 4px rgba(0,0,0,0.2);
+    box-shadow: 0 4px rgba(0,0,0,0.2); transition: 0.1s;
 }
 .pill-btn:active { transform: translateY(2px); box-shadow: 0 2px rgba(0,0,0,0.2); }
 
-/* 頂部按鈕指定顏色 */
-.btn-orange { background: var(--orange); box-shadow: 0 4px #d35400; }
-.btn-blue { background: var(--blue); box-shadow: 0 4px #34a8c1; }
+.btn-orange { background: var(--orange); box-shadow: 0 4px #b35d1a; }
+.btn-blue { background: var(--blue); box-shadow: 0 4px #36a6bf; }
 .btn-muted-green { background: var(--muted-green); box-shadow: 0 4px #6f867b; }
-
-.btn-pink { background: var(--pink); box-shadow: 0 4px #c95250; }
+.btn-pink { background: var(--pink); box-shadow: 0 4px #d4524f; }
+.btn-green { background: var(--green); box-shadow: 0 4px #648f1a; }
 .btn-grey { background: #95a5a6; box-shadow: 0 4px #7f8c8d; }
-.btn-green { background: var(--green); box-shadow: 0 4px #6a961b; }
 
-/* 網格系統 - 修正：加入 align-items: start 防止卡片拉伸 */
-.grid-layout {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, var(--card-size));
-    gap: 20px; padding: 20px; justify-content: center;
-    align-items: start; /* 關鍵修正：確保卡片不被垂直拉伸 */
-    width: 100%; box-sizing: border-box;
-}
-
-/* 圖片選取導航 */
-.selection-header {
-    position: sticky; top: 65px; z-index: 2500;
-    background: rgba(255,255,255,0.95); padding: 12px 25px;
-    display: flex; gap: 15px; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-}
-
-.category-title-bar {
-    background: var(--orange); color: white; padding: 10px 25px;
-    display: flex; justify-content: space-between; align-items: center;
-    margin-top: 20px; border-radius: 8px; font-weight: 800; font-size: 18px;
-}
-
-/* 卡片 */
+/* 核心：卡片外觀與比例鎖定 */
 .card {
-    background: white; border-radius: 15px; padding: 10px; text-align: center;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.08); width: var(--card-size);
-    border: 5px solid transparent; cursor: pointer; position: relative;
-    box-sizing: border-box;
-    height: fit-content; /* 確保高度隨內容縮放 */
+    background: white; border-radius: 15px; padding: 8px; text-align: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: var(--card-size);
+    border: 4px solid transparent; cursor: grab;
+    /* 鎖死比例關鍵 */
+    height: fit-content !important; 
+    align-self: start;
+    display: flex; flex-direction: column;
 }
 .card.selected { border-color: var(--green); }
-.card img { width: 100%; aspect-ratio: 1/1; object-fit: contain; pointer-events: none; -webkit-user-drag: none; }
-.card-label { margin-top: 10px; font-size: 16px; font-weight: bold; color: #333; line-height: 1.2; }
+.card img { 
+    width: 100%; aspect-ratio: 1/1; object-fit: contain; 
+    pointer-events: none; border-radius: 8px;
+}
+.card-label { margin-top: 5px; font-size: 14px; font-weight: bold; color: #333; }
 body.no-text .card-label { display: none; }
 
-/* 分類框容器 */
-.category-box {
-    background: rgba(255,255,255,0.95); border-radius: 25px; border: 6px solid;
-    width: 420px; min-height: 300px; overflow: hidden; display: flex; flex-direction: column;
-    margin: 15px;
+/* 網格佈局 */
+.grid-layout {
+    display: grid; grid-template-columns: repeat(auto-fill, var(--card-size));
+    gap: 15px; padding: 10px; justify-content: center;
+    align-items: start; /* 防止 Grid 拉長卡片 */
 }
-.cat-header { 
-    padding: 15px; color: white; font-size: 22px; font-weight: bold;
-    display: flex; align-items: center; justify-content: center; gap: 15px;
-}
-.cat-header img { height: 60px; width: 60px; object-fit: contain; background: white; border-radius: 15px; padding: 5px; }
 
-/* 遊戲階段專用：洗牌區 */
-#shuffle-box {
-    background: rgba(255,255,255,0.5); border: 4px dashed white; border-radius: 25px;
-    min-height: 160px; width: 90%; margin: 0 auto 30px auto;
+/* 遊戲階段容器 (全螢幕適應) */
+#game-container {
+    height: calc(100vh - 65px);
+    display: flex; flex-direction: column;
+    padding: 10px; box-sizing: border-box;
 }
+
+#shuffle-box {
+    height: 25%; background: rgba(255,255,255,0.4);
+    border: 3px dashed white; border-radius: 20px;
+    overflow-y: auto; margin-bottom: 10px;
+}
+
+#zones-wrapper {
+    flex: 1; display: flex; justify-content: center; gap: 15px;
+    overflow: hidden; /* 確保不超出螢幕 */
+}
+
+.category-box {
+    flex: 1; min-width: 250px; max-width: 400px;
+    background: rgba(255,255,255,0.9); border-radius: 20px; border: 5px solid;
+    display: flex; flex-direction: column; height: 100%;
+}
+
+.cat-header {
+    padding: 10px; color: white; font-weight: bold; font-size: 20px;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+}
+.cat-header img { 
+    height: 45px; width: 45px; object-fit: contain; 
+    background: white; border-radius: 10px; padding: 2px;
+}
+
+.inner-zone { flex: 1; overflow-y: auto; padding: 10px; }
+
+/* 圖片選取頁面專用 (需要捲動) */
+#main-stage.scrollable { overflow-y: auto; height: calc(100vh - 65px); }
 
 .floating-next {
-    position: fixed; bottom: 40px; right: 40px; z-index: 3100;
-    height: 70px; padding: 0 45px; border-radius: 50px; font-size: 22px;
+    position: fixed; bottom: 30px; right: 30px; z-index: 3100;
+    height: 60px; padding: 0 30px; border-radius: 30px; font-size: 20px;
 }
 
 .feedback-emoji {
     position: absolute; top: -30px; left: 50%; transform: translateX(-50%);
-    font-size: 50px; z-index: 1000; animation: popUp 0.7s forwards;
+    font-size: 50px; z-index: 4000; animation: popUp 0.7s forwards;
 }
-@keyframes popUp { 0% { opacity: 0; transform: translate(-50%, 20px); } 50% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -50px); } }
-
-.game-title { text-align: center; color: white; font-size: 36px; text-shadow: 2px 2px 10px rgba(0,0,0,0.5); margin: 20px 0; }
+@keyframes popUp { 0% { opacity: 0; transform: translate(-50%, 20px); } 100% { opacity: 0; transform: translate(-50%, -50px); } }
