@@ -275,9 +275,9 @@ window.onload = function() {
         nextBtn.classList.add('hidden');
         document.getElementById('main-stage').classList.remove('scrollable');
         document.getElementById('main-stage').innerHTML = `
-            <div style="text-align:center; padding-top:10vh; display:flex; justify-content:center; gap:30px;">
-                <button class="pill-btn btn-orange" style="width:220px; height:100px; font-size:24px;" id="mode-cat">按類別分類</button>
-                <button class="pill-btn btn-pink" style="width:220px; height:100px; font-size:24px;" id="mode-free">自由分類</button>
+            <div style="text-align:center; padding-top:15vh; display:flex; justify-content:center; gap:40px;">
+                <button class="pill-btn btn-orange" style="width:250px; height:120px; font-size:28px;" id="mode-cat">按類別分類</button>
+                <button class="pill-btn btn-pink" style="width:250px; height:120px; font-size:28px;" id="mode-free">自由分類</button>
             </div>`;
         document.getElementById('mode-cat').onclick = () => enterSelection('by-category');
         document.getElementById('mode-free').onclick = () => enterSelection('free');
@@ -289,28 +289,29 @@ window.onload = function() {
         else renderPrepBoard();
     };
 
-    // 其他控制項
     document.getElementById('sizeSlider').oninput = (e) => document.documentElement.style.setProperty('--card-size', e.target.value + 'px');
     document.getElementById('textToggle').onchange = (e) => document.body.classList.toggle('no-text', !e.target.checked);
-    document.getElementById('bgSelect').onchange = (e) => document.body.style.background = e.target.value === 'white' ? 'white' : `url('images/${e.target.value}') center/cover fixed`;
+    document.getElementById('bgSelect').onchange = (e) => {
+        const val = e.target.value;
+        document.body.style.background = val === 'white' ? 'white' : `url('images/${val}') center/cover fixed`;
+    };
 };
 
-// 圖片選取頁面
 function enterSelection(mode) {
     gameMode = mode;
     const stage = document.getElementById('main-stage');
     stage.classList.add('scrollable');
     stage.innerHTML = `
-        <div style="position:sticky; top:0; background:rgba(255,255,255,0.9); padding:10px; z-index:10; display:flex; gap:10px;">
+        <div style="position:sticky; top:0; background:white; padding:12px; z-index:10; display:flex; gap:15px; border-bottom:1px solid #ddd;">
             <button class="pill-btn btn-grey" onclick="location.reload()">返回</button>
-            <input type="text" id="searchInput" placeholder="🔍 搜尋..." style="flex:1; border-radius:10px; border:1px solid #ccc; padding:0 10px;">
+            <input type="text" id="searchInput" placeholder="🔍 搜尋詞彙..." style="flex:1; border-radius:12px; border:1px solid #ccc; padding:0 15px; font-size:16px;">
         </div>
         <div id="selection-content">
             ${categories.map(cat => `
-                <div style="padding:10px;">
-                    <div style="background:var(--orange); color:white; padding:8px 15px; border-radius:8px; font-weight:bold; display:flex; justify-content:space-between;">
-                        <span>${cat}</span>
-                        <button class="pill-btn btn-green" style="height:25px; font-size:12px;" onclick="selectAllInCategory('${cat}')">全選</button>
+                <div style="padding:15px;">
+                    <div style="background:var(--orange); color:white; padding:10px 20px; border-radius:10px; font-weight:bold; display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:20px;">${cat}</span>
+                        <button class="pill-btn btn-green" style="height:30px; font-size:14px; box-shadow:none;" onclick="selectAllInCategory('${cat}')">全選</button>
                     </div>
                     <div class="grid-layout" data-cat="${cat}">
                         ${library.filter(i => i.cat === cat).map(i => renderCardHTML(i, true)).join('')}
@@ -318,11 +319,6 @@ function enterSelection(mode) {
                 </div>
             `).join('')}
         </div>`;
-    
-    document.getElementById('searchInput').oninput = (e) => {
-        const q = e.target.value;
-        document.querySelectorAll('.card').forEach(c => c.style.display = c.dataset.name.includes(q) ? 'block' : 'none');
-    };
     updateNextButton();
 }
 
@@ -356,16 +352,15 @@ function updateNextButton() {
     nextBtn.classList.toggle('hidden', selectedItems.length === 0);
 }
 
-// 預備看板
 function renderPrepBoard() {
     const stage = document.getElementById('main-stage');
     stage.classList.add('scrollable');
     const catsInGame = [...new Set(selectedItems.map(i => i.cat))];
     stage.innerHTML = `
-        <h2 style="text-align:center; color:white; text-shadow:2px 2px 5px rgba(0,0,0,0.5);">預備...</h2>
-        <div style="display:flex; justify-content:center; gap:20px; flex-wrap:wrap; padding:20px;">
+        <h1 style="text-align:center; color:white; font-size:48px; text-shadow:3px 3px 6px rgba(0,0,0,0.5); margin:30px 0;">預備...</h1>
+        <div style="display:flex; justify-content:center; gap:25px; flex-wrap:wrap; padding:0 30px;">
             ${catsInGame.map((cat, idx) => `
-                <div class="category-box" style="border-color:${getCatColor(idx)}; height:auto; min-height:200px;">
+                <div class="category-box" style="border-color:${getCatColor(idx)}; height:auto; min-height:250px;">
                     <div class="cat-header" style="background:${getCatColor(idx)}">
                         <img src="images/categories/${cat}.png">
                         ${cat}
@@ -374,13 +369,12 @@ function renderPrepBoard() {
                 </div>
             `).join('')}
         </div>
-        <div style="text-align:center; padding-bottom:50px;">
-            <button class="pill-btn btn-orange" id="start-game-btn" style="width:280px; height:80px; font-size:30px;">開始遊戲 🚀</button>
+        <div style="text-align:center; padding:60px;">
+            <button class="pill-btn btn-orange" id="start-game-btn" style="width:320px; height:90px; font-size:36px; border-radius:20px;">開始遊戲 🚀</button>
         </div>`;
     document.getElementById('start-game-btn').onclick = renderGameStage;
 }
 
-// 遊戲階段 (全螢幕無捲動)
 function renderGameStage() {
     const stage = document.getElementById('main-stage');
     stage.classList.remove('scrollable');
@@ -392,7 +386,8 @@ function renderGameStage() {
             <div id="shuffle-box" class="grid-layout"></div>
             <div id="zones-wrapper">
                 ${catsInGame.map((cat, idx) => `
-                    <div class="category-box target-zone" data-target="${isFree ? 'any' : cat}" style="border-color:${getCatColor(idx)}">
+                    <div class="category-box target-zone" data-target="${isFree ? 'any' : cat}" 
+                         style="border-color:${isFree ? (idx === 0 ? '#fb6764' : '#4bd8f8') : getCatColor(idx)}">
                         ${!isFree ? `
                         <div class="cat-header" style="background:${getCatColor(idx)}">
                             <img src="images/categories/${cat}.png">
@@ -402,8 +397,8 @@ function renderGameStage() {
                     </div>
                 `).join('')}
             </div>
-            <div style="text-align:center; padding:10px;">
-                <button class="pill-btn btn-orange" id="finish-btn">完成 🏁</button>
+            <div style="text-align:center; padding:15px;">
+                <button class="pill-btn btn-orange" id="finish-btn" style="height:60px; padding:0 50px; font-size:24px;">完成 🏁</button>
             </div>
         </div>`;
 
