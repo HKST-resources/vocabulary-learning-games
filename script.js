@@ -1,3 +1,4 @@
+// 1. 資料庫設定
 const rawDataString = `水果	哈密瓜	水果/哈密瓜.png
 水果	士多啤梨	水果/士多啤梨.png
 水果	奇異果	水果/奇異果.png
@@ -265,36 +266,55 @@ const categories = [...new Set(library.map(i => i.cat))];
 let selectedItems = [];
 let gameMode = '';
 
-const mainStage = document.getElementById('main-stage');
-const nextBtn = document.getElementById('global-next-btn');
+// 2. 初始化功能 (當網頁載入完成後)
+window.onload = function() {
+    const mainStage = document.getElementById('main-stage');
+    const nextBtn = document.getElementById('global-next-btn');
 
-// 初始化
-document.getElementById('bgSelect').onchange = (e) => {
-    const val = e.target.value;
-    document.body.style.background = val === 'white' ? 'white' : `url('images/${val}') center/cover fixed`;
+    // 背景切換
+    document.getElementById('bgSelect').onchange = (e) => {
+        const val = e.target.value;
+        document.body.style.background = val === 'white' ? 'white' : `url('images/${val}') center/cover fixed`;
+    };
+
+    // --- 關鍵修正：分類遊戲按鈕點擊 ---
+    document.getElementById('nav-btn-sort').onclick = () => {
+        nextBtn.classList.add('hidden');
+        mainStage.innerHTML = `
+            <div style="text-align:center; padding-top:150px; display:flex; justify-content:center; gap:30px;">
+                <button class="pill-btn btn-blue" style="width:200px; height:100px; font-size:24px;" id="mode-cat">按類別分類</button>
+                <button class="pill-btn btn-orange" style="width:200px; height:100px; font-size:24px;" id="mode-free">自由分類</button>
+            </div>`;
+        
+        // 綁定子模式按鈕
+        document.getElementById('mode-cat').onclick = () => enterSelection('by-category');
+        document.getElementById('mode-free').onclick = () => enterSelection('free');
+    };
+
+    // 下一步按鈕點擊
+    nextBtn.onclick = () => {
+        nextBtn.classList.add('hidden');
+        renderPrepBoard();
+    };
+
+    // 滑桿與文字切換
+    document.getElementById('sizeSlider').oninput = (e) => document.documentElement.style.setProperty('--card-size', e.target.value + 'px');
+    document.getElementById('textToggle').onchange = (e) => document.body.classList.toggle('no-text', !e.target.checked);
 };
 
-// 模式選擇
-document.getElementById('nav-btn-sort').onclick = () => {
-    nextBtn.classList.add('hidden');
-    mainStage.innerHTML = `
-        <div class="center-content" style="display:flex; justify-content:center; gap:30px;">
-            <button class="pill-btn btn-blue" style="width:200px; height:100px; font-size:24px;" onclick="enterSelection('by-category')">按類別分類</button>
-            <button class="pill-btn btn-orange" style="width:200px; height:100px; font-size:24px;" onclick="enterSelection('free')">自由分類</button>
-        </div>`;
-};
-
-// 1. 圖片選取頁面
+// 3. 圖片選取頁面
 function enterSelection(mode) {
     gameMode = mode;
+    const mainStage = document.getElementById('main-stage');
+    
     mainStage.innerHTML = `
         <div class="selection-header">
             <button class="pill-btn btn-grey" onclick="location.reload()">返回</button>
-            <select class="pill-btn bg-selector" onchange="document.getElementById(this.value).scrollIntoView({behavior:'smooth', block:'center'})">
+            <select class="pill-btn bg-selector" id="jumpSelect">
                 <option value="">🚀 跳轉至...</option>
                 ${categories.map(c => `<option value="section-${c}">${c}</option>`).join('')}
             </select>
-            <input type="text" id="searchInput" placeholder="🔍 搜尋詞彙..." style="flex:1; padding:10px; border-radius:10px; border:1px solid #ccc;" oninput="filterCards(this.value)">
+            <input type="text" id="searchInput" placeholder="🔍 搜尋詞彙..." style="flex:1; padding:10px; border-radius:10px; border:1px solid #ccc;">
         </div>
         <div id="selection-content">
             ${categories.map(cat => `
@@ -309,9 +329,16 @@ function enterSelection(mode) {
                 </div>
             `).join('')}
         </div>`;
+
+    // 綁定搜尋與跳轉
+    document.getElementById('searchInput').oninput = (e) => filterCards(e.target.value);
+    document.getElementById('jumpSelect').onchange = (e) => {
+        if(e.target.value) document.getElementById(e.target.value).scrollIntoView({behavior:'smooth', block:'center'});
+    };
     updateNextButton();
 }
 
+// 渲染卡片 HTML
 function renderCardHTML(item, isSelectable) {
     const isSelected = selectedItems.some(s => s.path === item.path);
     return `
@@ -337,9 +364,7 @@ function toggleCard(el) {
 
 function selectAllInCategory(cat) {
     const cards = document.querySelectorAll(`.grid-layout[data-cat="${cat}"] .card`);
-    cards.forEach(card => {
-        if (!card.classList.contains('selected')) toggleCard(card);
-    });
+    cards.forEach(card => { if (!card.classList.contains('selected')) toggleCard(card); });
 }
 
 function filterCards(q) {
@@ -349,17 +374,14 @@ function filterCards(q) {
 }
 
 function updateNextButton() {
+    const nextBtn = document.getElementById('global-next-btn');
     nextBtn.innerText = `下一步 (已選: ${selectedItems.length}) ➔`;
     nextBtn.classList.toggle('hidden', selectedItems.length === 0);
 }
 
-// 2. 準備看板
-nextBtn.onclick = () => {
-    nextBtn.classList.add('hidden');
-    renderPrepBoard();
-};
-
+// 4. 準備看板
 function renderPrepBoard() {
+    const mainStage = document.getElementById('main-stage');
     const catsInGame = [...new Set(selectedItems.map(i => i.cat))];
     mainStage.innerHTML = `
         <div style="padding:20px; text-align:center;">
@@ -375,12 +397,15 @@ function renderPrepBoard() {
             `).join('')}
         </div>
         <div style="text-align:center; padding:50px;">
-            <button class="pill-btn btn-orange" style="height:70px; padding:0 60px; font-size:28px; border-radius:40px;" onclick="renderGameStage()">開始遊戲 🚀</button>
+            <button class="pill-btn btn-orange" style="height:70px; padding:0 60px; font-size:28px; border-radius:40px;" id="start-game-btn">開始遊戲 🚀</button>
         </div>`;
+    
+    document.getElementById('start-game-btn').onclick = renderGameStage;
 }
 
-// 3. 遊戲階段
+// 5. 遊戲階段
 function renderGameStage() {
+    const mainStage = document.getElementById('main-stage');
     const catsInGame = gameMode === 'free' ? ['分類區 A', '分類區 B'] : [...new Set(selectedItems.map(i => i.cat))];
     
     mainStage.innerHTML = `
@@ -394,10 +419,7 @@ function renderGameStage() {
                     </div>
                 `).join('')}
             </div>
-            ${gameMode === 'free' ? `
-                <div style="text-align:center; padding:30px;">
-                    <button class="pill-btn btn-orange" style="height:55px; font-size:22px;" onclick="finishGame()">完成分類</button>
-                </div>` : ''}
+            ${gameMode === 'free' ? `<div style="text-align:center; padding:30px;"><button class="pill-btn btn-orange" style="height:55px; font-size:22px;" onclick="finishGame()">完成分類</button></div>` : ''}
         </div>`;
 
     const shuffleBox = document.getElementById('shuffle-box');
@@ -410,7 +432,6 @@ function renderGameStage() {
 
 function initInteract() {
     interact('.card').draggable({
-        inertia: true,
         listeners: {
             move(event) {
                 const t = event.target;
@@ -462,7 +483,3 @@ function finishGame() {
     new Audio('sounds/hooray.mp3').play().catch(()=>{});
     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
 }
-
-// 控制選項
-document.getElementById('sizeSlider').oninput = (e) => document.documentElement.style.setProperty('--card-size', e.target.value + 'px');
-document.getElementById('textToggle').onchange = (e) => document.body.classList.toggle('no-text', !e.target.checked);
