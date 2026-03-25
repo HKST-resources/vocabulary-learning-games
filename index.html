@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>詞彙學習活動</title>
-    
     <link rel="stylesheet" href="style.css">
-    
     <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
@@ -22,15 +20,13 @@
         <div class="nav-right">
             <div class="control-item">
                 <span>大小</span>
-                <input type="range" id="sizeSlider" min="80" max="220" value="130">
+                <input type="range" id="sizeSlider" min="80" max="220" value="110">
             </div>
-            
             <div class="control-item">
                 <input type="checkbox" id="textToggle" checked>
                 <label for="textToggle">文字</label>
             </div>
-            
-            <select id="bgSelect" class="pill-btn" style="background:#eee; color:#333; height:36px; padding:0 10px; box-shadow:none;">
+            <select id="bgSelect" class="pill-btn bg-picker">
                 <option value="park.jpg">公園</option>
                 <option value="room.jpg">房間</option>
                 <option value="road.jpg">馬路</option>
@@ -39,7 +35,6 @@
                 <option value="stripe.jpg">條紋</option>
                 <option value="white">白色</option>
             </select>
-            
             <button class="pill-btn btn-green">匯出 💾</button>
         </div>
     </header>
