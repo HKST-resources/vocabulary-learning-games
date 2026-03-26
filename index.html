@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>詞彙分類遊戲 - 專業優化版</title>
+    <title>詞彙學習遊戲</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -13,21 +13,11 @@
             --card-font-size: 1.1rem;
             --blue-dark: #0EA5E9; 
             --orange-dark: #EA580C;
+            --pink-main: #FB6764;
+            --blue-main: #4BD8F8;
         }
-
-        /* --- IPAD SYSTEM FIXES --- */
-        html, body { 
-            font-family: "PingFang HK", "Heiti TC", sans-serif; 
-            overscroll-behavior: none; 
-            overflow: hidden; 
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            user-select: none; 
-            -webkit-user-select: none;
-            touch-action: none; /* Disables browser-level panning/zooming */
-        }
-
+        body { font-family: "PingFang HK", "Heiti TC", sans-serif; overflow-x: hidden; user-select: none; -webkit-user-select: none; }
+        
         .bg-park { background: url('images/park.jpg') center/cover fixed; }
         .bg-room { background: url('images/room.jpg') center/cover fixed; }
         .bg-road { background: url('images/road.jpg') center/cover fixed; }
@@ -47,29 +37,29 @@
             flex-direction: column;
             align-items: center;
             background: white;
-            padding: 6px;
+            padding: 8px;
             border-radius: 12px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            touch-action: none;
+            touch-action: none; /* Prevents iPad scroll during drag */
             position: relative;
         }
         
-        /* Dragging state */
+        /* Dragging visuals */
         .dragging {
             position: fixed !important;
             z-index: 1000 !important;
             pointer-events: none;
-            opacity: 0.9;
+            opacity: 0.8;
             transform: scale(1.1);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
         }
 
-        .vocab-card p { font-size: var(--card-font-size); font-weight: 400; text-align: center; margin-top: 2px; }
+        .vocab-card p { font-size: var(--card-font-size); font-weight: 400; text-align: center; margin-top: 4px; }
         .selected-card { outline: 6px solid #22c55e; box-shadow: 0 0 20px rgba(34, 197, 94, 0.5); }
 
         .hide-text p { display: none !important; }
+        .hide-text .vocab-card { height: var(--card-width); justify-content: center; }
 
-        .cat-box { display: flex; flex-direction: column; border-radius: 24px; overflow: hidden; background: white; border-width: 6px; height: 100%; }
+        .cat-box { display: flex; flex-direction: column; border-radius: 24px; overflow: hidden; background: white; border-width: 6px; height: 100%; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); }
         .cat-header { padding: 10px 15px; color: white; font-weight: 900; display: flex; align-items: center; gap: 10px; }
         
         .theme-pink { border-color: #FB6764; } .theme-pink .cat-header { background-color: #FB6764; }
@@ -78,300 +68,54 @@
         .theme-orange { border-color: #fb923c; } .theme-orange .cat-header { background-color: #fb923c; }
 
         .feedback-pop {
-            position: absolute; top: -20px; left: 50%; transform: translateX(-50%);
+            position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
             font-size: 3rem; z-index: 50; pointer-events: none;
             animation: popUp 0.8s ease-out forwards;
         }
         @keyframes popUp {
             0% { transform: translate(-50%, 10px) scale(0); opacity: 0; }
-            50% { transform: translate(-50%, -20px) scale(1.2); opacity: 1; }
+            50% { transform: translate(-50%, -20px) scale(1.3); opacity: 1; }
             100% { transform: translate(-50%, -40px) scale(1); opacity: 0; }
         }
 
-        .game-viewport { height: calc(100vh - 100px); display: flex; flex-direction: column; gap: 10px; }
-        main { height: 100vh; }
+        .game-viewport { height: calc(100vh - 120px); display: flex; flex-direction: column; gap: 0.5rem; }
     </style>
 </head>
 <body class="bg-park">
 
     <nav class="fixed top-0 left-0 w-full h-14 bg-white shadow-sm z-[100] flex items-center justify-between px-4">
-        <button onclick="showSubModes()" class="px-5 py-1 rounded-xl font-bold btn-blue btn-active">分類遊戲</button>
+        <div class="flex gap-2">
+            <button onclick="showSubModes()" class="px-5 py-1 rounded-xl font-bold btn-blue btn-active">分類遊戲</button>
+        </div>
+
         <div class="flex items-center gap-4 text-sm font-bold text-gray-700">
             <div class="flex items-center gap-2">
-                <span>基本大小</span>
-                <input type="range" id="sizeSlider" min="70" max="180" value="110" oninput="handleSizeChange(this.value)">
+                <span>大小</span>
+                <input type="range" id="sizeSlider" min="80" max="220" value="110" oninput="handleSizeChange(this.value)">
             </div>
             <label class="flex items-center gap-1 cursor-pointer">
-                <input type="checkbox" id="showTextToggle" checked onchange="updateView()"> 顯示文字
+                <input type="checkbox" id="showTextToggle" checked onchange="handleTextToggle(this.checked)"> 顯示文字
             </label>
             <select onchange="document.body.className = 'bg-' + this.value" class="border rounded-md px-2 py-1 bg-gray-50">
                 <option value="park">草地</option><option value="room">房間</option><option value="road">馬路</option><option value="game">遊戲</option><option value="white">純白</option>
             </select>
-            <button onclick="exportResult()" class="px-4 py-1 bg-emerald-600 text-white rounded-md font-bold btn-active">匯出 💾</button>
+            <button onclick="exportResult()" class="px-4 py-1 bg-emerald-600 text-white rounded-md font-bold btn-active shadow-md">匯出 💾</button>
         </div>
     </nav>
 
     <main id="app" class="mt-16 p-4"></main>
 
     <script>
+        /* Asset List (Shortened as requested) */
         const bulkVocabData = `
-水果	哈密瓜	水果/哈密瓜.png
-水果	士多啤梨	水果/士多啤梨.png
-水果	奇異果	水果/奇異果.png
-水果	提子	水果/提子.png
-水果	木瓜	水果/木瓜.png
-水果	楊桃	水果/楊桃.png
-水果	榴槤	水果/榴槤.png
-水果	橙	水果/橙.png
-水果	檸檬	水果/檸檬.png
-水果	火龍果	水果/火龍果.png
-水果	牛油果	水果/牛油果.png
-水果	芒果	水果/芒果.png
-水果	荔枝	水果/荔枝.png
-水果	菠蘿	水果/菠蘿.png
-水果	藍莓	水果/藍莓.png
-水果	蘋果	水果/蘋果.png
-水果	西瓜	水果/西瓜.png
-水果	車厘子	水果/車厘子.png
-水果	香蕉	水果/香蕉.png
-水果	龍眼	水果/龍眼.png
-蔬菜	南瓜	蔬菜/南瓜.png
-蔬菜	娃娃菜	蔬菜/娃娃菜.png
-蔬菜	椰菜	蔬菜/椰菜.png
-蔬菜	椰菜花	蔬菜/椰菜花.png
-蔬菜	洋蔥	蔬菜/洋蔥.png
-蔬菜	生菜	蔬菜/生菜.png
-蔬菜	番薯	蔬菜/番薯.png
-蔬菜	白菜	蔬菜/白菜.png
-蔬菜	粟米	蔬菜/粟米.png
-蔬菜	紅椒	蔬菜/紅椒.png
-蔬菜	紅蘿蔔	蔬菜/紅蘿蔔.png
-蔬菜	茄子	蔬菜/茄子.png
-蔬菜	菜心	蔬菜/菜心.png
-蔬菜	菠菜	蔬菜/菠菜.png
-蔬菜	蕃茄	蔬菜/蕃茄.png
-蔬菜	薯仔	蔬菜/薯仔.png
-蔬菜	蘑菇	蔬菜/蘑菇.png
-蔬菜	蘿蔔	蔬菜/蘿蔔.png
-蔬菜	西蘭花	蔬菜/西蘭花.png
-蔬菜	辣椒	蔬菜/辣椒.png
-蔬菜	青椒	蔬菜/青椒.png
-蔬菜	青瓜	蔬菜/青瓜.png
-蔬菜	青豆	蔬菜/青豆.png
-蔬菜	黃椒	蔬菜/黃椒.png
-動物	企鵝	動物/企鵝.png
-動物	倉鼠	動物/倉鼠.png
-動物	兔	動物/兔.png
-動物	北極熊	動物/北極熊.png
-動物	大象	動物/大象.png
-動物	天鵝	動物/天鵝.png
-動物	斑馬	動物/斑馬.png
-動物	樹熊	動物/樹熊.png
-動物	河馬	動物/河馬.png
-動物	熊	動物/熊.png
-動物	熊貓	動物/熊貓.png
-動物	牛	動物/牛.png
-動物	狐狸	動物/狐狸.png
-動物	狗	動物/狗.png
-動物	獅子	動物/獅子.png
-動物	羊	動物/羊.png
-動物	老虎	動物/老虎.png
-動物	老鼠	動物/老鼠.png
-動物	蛇	動物/蛇.png
-動物	袋鼠	動物/袋鼠.png
-動物	豬	動物/豬.png
-動物	豹	動物/豹.png
-動物	貓	動物/貓.png
-動物	貓頭鷹	動物/貓頭鷹.png
-動物	長頸鹿	動物/長頸鹿.png
-動物	雞	動物/雞.png
-動物	馬	動物/馬.png
-動物	馬騮｜猴子	動物/馬騮｜猴子.png
-動物	駱駝	動物/駱駝.png
-動物	鱷魚	動物/鱷魚.png
-動物	鴨	動物/鴨.png
-動物	鸚鵡	動物/鸚鵡.png
-動物	鹿	動物/鹿.png
-動物	麻雀｜雀仔	動物/麻雀｜雀仔.png
-動物	龜	動物/龜.png
-交通工具	單車	交通工具/單車.png
-交通工具	垃圾車	交通工具/垃圾車.png
-交通工具	天星小輪	交通工具/天星小輪.png
-交通工具	小巴	交通工具/小巴.png
-交通工具	巴士	交通工具/巴士.png
-交通工具	救護車	交通工具/救護車.png
-交通工具	旅遊巴	交通工具/旅遊巴.png
-交通工具	消防車	交通工具/消防車.png
-交通工具	港鐵	交通工具/港鐵.png
-交通工具	的士	交通工具/的士.png
-交通工具	直升機	交通工具/直升機.png
-交通工具	警車	交通工具/警車.png
-交通工具	貨櫃車	交通工具/貨櫃車.png
-交通工具	輕鐵	交通工具/輕鐵.png
-交通工具	郵輪	交通工具/郵輪.png
-交通工具	電單車	交通工具/電單車.png
-交通工具	電車	交通工具/電車.png
-交通工具	飛機	交通工具/飛機.png
-衣服	冷帽	衣服/冷帽.png
-衣服	冷衫｜外套	衣服/冷衫｜外套.png
-衣服	冷衫｜毛衣	衣服/冷衫｜毛衣.png
-衣服	呔	衣服/呔.png
-衣服	外套｜褸	衣服/外套｜褸.png
-衣服	帽	衣服/帽.png
-衣服	恤衫	衣服/恤衫.png
-衣服	手襪	衣服/手襪.png
-衣服	拖鞋	衣服/拖鞋.png
-衣服	校服	衣服/校服.png
-衣服	泳衣	衣服/泳衣.png
-衣服	泳褲	衣服/泳褲.png
-衣服	皮帶	衣服/皮帶.png
-衣服	短褲	衣服/短褲.png
-衣服	羽絨	衣服/羽絨.png
-衣服	衫	衣服/衫.png
-衣服	裙	衣服/裙.png
-衣服	襪	衣服/襪.png
-衣服	長褲	衣服/長褲.png
-衣服	雨衣｜雨褸	衣服/雨衣｜雨褸.png
-衣服	雨靴	衣服/雨靴.png
-衣服	鞋	衣服/鞋.png
-衣服	頸巾	衣服/頸巾.png
-文具	刨筆機	文具/刨筆機.png
-文具	原子筆	文具/原子筆.png
-文具	擦膠	文具/擦膠.png
-文具	橡筋	文具/橡筋.png
-文具	水筆	文具/水筆.png
-文具	漿糊筆	文具/漿糊筆.png
-文具	白膠漿	文具/白膠漿.png
-文具	簿	文具/簿.png
-文具	膠水	文具/膠水.png
-文具	膠紙	文具/膠紙.png
-文具	萬字夾	文具/萬字夾.png
-文具	螢光筆	文具/螢光筆.png
-文具	釘書機	文具/釘書機.png
-文具	鉛筆	文具/鉛筆.png
-文具	鉛筆刨	文具/鉛筆刨.png
-文具	鉸剪｜剪刀	文具/鉸剪｜剪刀.png
-文具	間尺	文具/間尺.png
-文具	顏色筆	文具/顏色筆.png
-文具	顏色紙	文具/顏色紙.png
-傢俬	床	傢俬/床.png
-傢俬	書櫃	傢俬/書櫃.png
-傢俬	枱	傢俬/枱.png
-傢俬	梳化	傢俬/梳化.png
-傢俬	櫃	傢俬/櫃.png
-傢俬	櫈	傢俬/櫈.png
-傢俬	衣櫃	傢俬/衣櫃.png
-電器	冷氣機	電器/冷氣機.png
-電器	吸塵機	電器/吸塵機.png
-電器	微波爐	電器/微波爐.png
-電器	洗衣機	電器/洗衣機.png
-電器	焗爐	電器/焗爐.png
-電器	熨斗	電器/熨斗.png
-電器	熱水壺	電器/熱水壺.png
-電器	燈	電器/燈.png
-電器	雪櫃	電器/雪櫃.png
-電器	電磁爐	電器/電磁爐.png
-電器	電腦	電器/電腦.png
-電器	電視	電器/電視.png
-電器	電飯煲	電器/電飯煲.png
-電器	風扇	電器/風扇.png
-電器	風筒	電器/風筒.png
-玩具	套圈	玩具/套圈.png
-玩具	恐龍	玩具/恐龍.png
-玩具	機械人	玩具/機械人.png
-玩具	水槍	玩具/水槍.png
-玩具	波	玩具/波.png
-玩具	火車	玩具/火車.png
-玩具	煮飯仔	玩具/煮飯仔.png
-玩具	熊啤啤	玩具/熊啤啤.png
-玩具	玩具屋	玩具/玩具屋.png
-玩具	琴	玩具/琴.png
-玩具	積木	玩具/積木.png
-玩具	籃球	玩具/籃球.png
-玩具	足球	玩具/足球.png
-玩具	車	玩具/車.png
-玩具	遙控車	玩具/遙控車.png
-玩具	風箏	玩具/風箏.png
-玩具	鼓	玩具/鼓.png
-玩具	Lego｜積木	玩具/Lego｜積木.png
-玩具	puzzle｜拼圖	玩具/puzzle｜拼圖.png
-飲品	咖啡	飲品/咖啡.png
-飲品	朱古力奶	飲品/朱古力奶.png
-飲品	橙汁	飲品/橙汁.png
-飲品	檸檬茶	飲品/檸檬茶.png
-飲品	水	飲品/水.png
-飲品	汽水	飲品/汽水.png
-飲品	湯	飲品/湯.png
-飲品	牛奶	飲品/牛奶.png
-飲品	益力多	飲品/益力多.png
-飲品	維他奶	飲品/維他奶.png
-飲品	茶	飲品/茶.png
-飲品	豆漿	飲品/豆漿.png
-餐具及廚具	刀	餐具及廚具/刀.png
-餐具及廚具	匙羹	餐具及廚具/匙羹.png
-餐具及廚具	叉	餐具及廚具/叉.png
-餐具及廚具	杯	餐具及廚具/杯.png
-餐具及廚具	煲	餐具及廚具/煲.png
-餐具及廚具	碗	餐具及廚具/碗.png
-餐具及廚具	碟	餐具及廚具/碟.png
-餐具及廚具	筷子	餐具及廚具/筷子.png
-餐具及廚具	鑊鏟	餐具及廚具/鑊鏟.png
-餐具及廚具	飲筒｜飲管	餐具及廚具/飲筒｜飲管.png
-廁所物品	地拖	廁所物品/地拖.png
-廁所物品	廁紙	廁所物品/廁紙.png
-廁所物品	掃把	廁所物品/掃把.png
-廁所物品	梘液	廁所物品/梘液.png
-廁所物品	梳	廁所物品/梳.png
-廁所物品	毛巾	廁所物品/毛巾.png
-廁所物品	水桶	廁所物品/水桶.png
-廁所物品	浴缸	廁所物品/浴缸.png
-廁所物品	牙刷	廁所物品/牙刷.png
-廁所物品	牙膏	廁所物品/牙膏.png
-廁所物品	花灑	廁所物品/花灑.png
-廁所物品	馬桶	廁所物品/馬桶.png
-職業	侍應	職業/侍應.png
-職業	司機	職業/司機.png
-職業	外賣員	職業/外賣員.png
-職業	太空人	職業/太空人.png
-職業	工程師	職業/工程師.png
-職業	廚師	職業/廚師.png
-職業	收銀員	職業/收銀員.png
-職業	消防員	職業/消防員.png
-職業	清潔工人	職業/清潔工人.png
-職業	老師	職業/老師.png
-職業	警察	職業/警察.png
-職業	護士	職業/護士.png
-職業	農夫	職業/農夫.png
-職業	郵差	職業/郵差.png
-職業	醫生	職業/醫生.png
-顏色	啡色	顏色/啡色.png
-顏色	橙色	顏色/橙色.png
-顏色	灰色	顏色/灰色.png
-顏色	白色	顏色/白色.png
-顏色	粉紅色	顏色/粉紅色.png
-顏色	紅色	顏色/紅色.png
-顏色	紫色	顏色/紫色.png
-顏色	綠色	顏色/綠色.png
-顏色	藍色	顏色/藍色.png
-顏色	黃色	顏色/黃色.png
-顏色	黑色	顏色/黑色.png
-形狀	三角形	形狀/三角形.png
-形狀	圓形	形狀/圓形.png
-形狀	心形	形狀/心形.png
-形狀	星形	形狀/星形.png
-形狀	正方形	形狀/正方形.png
-形狀	菱形	形狀/菱形.png
-形狀	長方形	形狀/長方形.png
-數字	1	數字/1.png
-數字	2	數字/2.png
-數字	3	數字/3.png
-數字	4	數字/4.png
-數字	5	數字/5.png
-數字	6	數字/6.png
-數字	7	數字/7.png
-數字	8	數字/8.png
-數字	9	數字/9.png
-數字	10	數字/10.png
+水果 哈密瓜 水果/哈密瓜.png
+水果 士多啤梨 水果/士多啤梨.png
+水果 奇異果 水果/奇異果.png
+蔬菜 粟米 蔬菜/粟米.png
+蔬菜 紅椒 蔬菜/紅椒.png
+蔬菜 白菜 蔬菜/白菜.png
+動物 狗 動物/狗.png
+動物 貓 動物/貓.png
 `; 
 
         const vocabList = bulkVocabData.trim().split('\n').map(line => {
@@ -382,7 +126,7 @@
         const categories = [...new Set(vocabList.map(item => item.cat))];
         const themeClasses = ['theme-pink', 'theme-blue', 'theme-green', 'theme-orange'];
 
-        let view = 'SUB_MODES';
+        let view = 'WELCOME';
         let gameMode = ''; 
         let selectedItems = [];
         const sounds = { star: new Audio('sounds/star.mp3'), wrong: new Audio('sounds/wrong.mp3'), hooray: new Audio('sounds/hooray.mp3') };
@@ -393,71 +137,67 @@
             updateView(); 
         }
 
-        function showSubModes() { 
-            selectedItems = []; 
-            view = 'SUB_MODES'; 
-            updateView(); 
-        }
+        function showSubModes() { selectedItems = []; view = 'SUB_MODES'; updateView(); }
 
         function updateView() {
             const app = document.getElementById('app');
             const isTextHidden = !document.getElementById('showTextToggle').checked;
             app.className = "mt-16 p-4 " + (isTextHidden ? "hide-text" : "");
             
-            if (view === 'SUB_MODES') {
+            if (view === 'WELCOME') {
+                app.innerHTML = `<div class="flex h-[70vh] items-center justify-center text-3xl text-gray-400 font-bold">請選擇上方活動開始</div>`;
+            } else if (view === 'SUB_MODES') {
                 app.innerHTML = `
-                <div class="flex flex-col items-center justify-center h-[80vh] gap-12">
-                    <h1 class="text-4xl font-black text-blue-900">請選擇分類方式</h1>
+                <div class="flex flex-col items-center justify-center gap-12 py-20">
                     <div class="flex gap-10">
                         <button onclick="setView('SELECT', 'ordered')" class="w-72 h-40 text-white text-4xl font-black rounded-3xl btn-blue btn-active">按類別分類</button>
                         <button onclick="setView('SELECT', 'free')" class="w-72 h-40 text-white text-4xl font-black rounded-3xl btn-orange btn-active">自由分類</button>
                     </div>
                 </div>`;
-            } else if (view === 'SELECT') { renderSelection(app); }
-              else if (view === 'PREP') { renderPrepBoard(app); }
-              else if (view === 'GAME') { renderGameStage(app); }
+            }
+            else if (view === 'SELECT') { renderSelection(app); }
+            else if (view === 'PREP') { renderPrepBoard(app); }
+            else if (view === 'GAME') { renderGameStage(app); }
         }
 
-        // --- Bug Fix 1: Selection Page Scrolling ---
+        // --- Fix 1: Selection Logic (No Full Refresh) ---
         function renderSelection(app) {
             app.innerHTML = `
                 <div class="sticky top-14 z-40 bg-white/90 p-4 rounded-2xl mb-6 shadow-sm flex justify-between items-center border border-gray-200">
                     <div class="flex gap-4">
-                        <select onchange="document.getElementById('section-'+this.value).scrollIntoView({behavior: 'smooth', block: 'center'})" class="p-2 border-2 border-gray-200 rounded-xl font-bold">
+                        <select onchange="document.getElementById('section-'+this.value).scrollIntoView({behavior: 'smooth'})" class="p-2 border-2 border-gray-200 rounded-xl font-bold bg-white">
                             <option>跳至類別...</option>
                             ${categories.map(c => `<option value="${c}">${c}</option>`).join('')}
                         </select>
                         <input type="text" id="searchInput" placeholder="🔍 搜尋..." class="p-2 border-2 border-gray-200 rounded-xl w-64" oninput="filterGrid(this.value)">
                     </div>
-                    <button id="nextBtn" onclick="goNextFromSelect()" class="px-8 py-3 btn-orange btn-active rounded-full font-black text-xl">
-                        下一步 (已選 ${selectedItems.length} 張)
-                    </button>
+                    <button id="nextBtn" onclick="goNextFromSelect()" class="px-8 py-3 btn-orange btn-active rounded-full font-black text-xl">下一步：已選取 ${selectedItems.length} 張</button>
                 </div>
-                <div id="selection-grid-container" style="height: 65vh; overflow-y: auto; -webkit-overflow-scrolling: touch;">
-                    ${renderSelectionGrid('')}
+                <div id="selection-grid-container">
+                    ${renderGridContent('')}
                 </div>
+                <button onclick="setView('SUB_MODES')" class="mt-8 px-10 py-2 btn-gray btn-active rounded-full font-bold">返回</button>
             `;
         }
 
         function filterGrid(term) {
-            document.getElementById('selection-grid-container').innerHTML = renderSelectionGrid(term);
+            document.getElementById('selection-grid-container').innerHTML = renderGridContent(term);
         }
 
-        function renderSelectionGrid(term) {
+        function renderGridContent(term) {
             let html = '';
             const filteredList = term ? vocabList.filter(v => v.name.includes(term)) : vocabList;
-            
             categories.forEach(cat => {
-                const itemsInCat = filteredList.filter(v => v.cat === cat);
-                if (itemsInCat.length === 0) return;
+                const items = filteredList.filter(v => v.cat === cat);
+                if(items.length === 0) return;
                 html += `
                 <div id="section-${cat}" class="mb-8">
-                    <div class="bg-blue-600 text-white px-6 py-2 rounded-t-xl flex justify-between items-center">
+                    <div class="bg-orange-600 text-white px-6 py-2 rounded-t-xl flex justify-between items-center">
                         <span class="text-xl font-black">${cat}</span>
                         <button onclick="selectAllInCat('${cat}')" class="text-sm bg-white/20 px-4 py-1 rounded-full font-bold">全選</button>
                     </div>
-                    <div class="bg-white/40 p-5 rounded-b-xl flex flex-wrap gap-4 border-x border-b border-blue-200">
-                        ${itemsInCat.map(v => {
+                    <div class="bg-white/40 p-5 rounded-b-xl flex flex-wrap gap-4 border-x border-b border-orange-200">
+                        ${items.map(v => {
                             const active = selectedItems.some(i => i.id === v.id) ? 'selected-card' : '';
                             return `<div id="card-${v.id}" onclick="toggleItem('${v.id}')" class="vocab-card cursor-pointer ${active}"><img src="${v.path}" class="w-full pointer-events-none"><p>${v.name}</p></div>`;
                         }).join('')}
@@ -467,11 +207,9 @@
             return html;
         }
 
-        // Updated toggleItem to NOT scroll
         function toggleItem(id) {
             const idx = selectedItems.findIndex(i => i.id === id);
             const cardEl = document.getElementById(`card-${id}`);
-            
             if (idx > -1) {
                 selectedItems.splice(idx, 1);
                 if(cardEl) cardEl.classList.remove('selected-card');
@@ -479,118 +217,114 @@
                 selectedItems.push(vocabList.find(v => v.id === id));
                 if(cardEl) cardEl.classList.add('selected-card');
             }
-            document.getElementById('nextBtn').innerText = `下一步 (已選 ${selectedItems.length} 張)`;
+            document.getElementById('nextBtn').innerText = `下一步：已選取 ${selectedItems.length} 張`;
+        }
+
+        function selectAllInCat(cat) {
+            vocabList.filter(v => v.cat === cat).forEach(i => {
+                if(!selectedItems.some(s=>s.id===i.id)) {
+                    selectedItems.push(i);
+                    const el = document.getElementById(`card-${i.id}`);
+                    if(el) el.classList.add('selected-card');
+                }
+            });
+            document.getElementById('nextBtn').innerText = `下一步：已選取 ${selectedItems.length} 張`;
         }
 
         function renderPrepBoard(app) {
             const activeCats = [...new Set(selectedItems.map(i => i.cat))];
             app.innerHTML = `
-                <div class="flex flex-col items-center gap-6 h-[85vh] overflow-y-auto">
-                    <button onclick="setView('SELECT')" class="px-8 py-2 btn-gray btn-active rounded-xl font-bold self-start">← 返回</button>
+                <div class="flex flex-col items-center gap-6">
+                    <button onclick="setView('SELECT')" class="px-8 py-2 btn-gray btn-active rounded-xl font-bold self-start">← 返回修改</button>
                     <div class="flex flex-wrap justify-center gap-8 w-full px-4">
                         ${activeCats.map((cat, idx) => `
-                            <div class="cat-box w-80 ${themeClasses[idx] || 'theme-orange'}">
-                                <div class="cat-header"><span class="text-2xl font-black">${cat}</span></div>
-                                <div class="p-4 flex flex-wrap gap-2 justify-center">
-                                    ${selectedItems.filter(i => i.cat === cat).map(i => `<div class="vocab-card w-20"><img src="${i.path}" class="w-full"></div>`).join('')}
+                            <div class="cat-box w-96 ${themeClasses[idx] || 'theme-orange'}">
+                                <div class="cat-header"><span class="text-3xl font-black tracking-wider">${cat}</span></div>
+                                <div class="p-6 flex flex-wrap gap-4 justify-center">
+                                    ${selectedItems.filter(i => i.cat === cat).map(i => `<div class="vocab-card"><img src="${i.path}" class="w-full"><p>${i.name}</p></div>`).join('')}
                                 </div>
                             </div>
                         `).join('')}
                     </div>
-                    <button onclick="setView('GAME')" class="px-24 py-6 btn-orange btn-active rounded-full font-black text-4xl mt-10 mb-20">開始 🚀</button>
+                    <button onclick="setView('GAME')" class="px-24 py-6 btn-orange btn-active rounded-full font-black text-4xl mt-10">開始遊戲 🚀</button>
                 </div>
             `;
         }
 
-        // --- Bug Fix 2: Better Drag & Auto-Scale ---
+        // --- Fix 2: Auto-Sizer & Pointer-Drag ---
         function renderGameStage(app) {
             const shuffled = [...selectedItems].sort(() => Math.random() - 0.5);
             const zones = gameMode === 'free' ? ['分類 A', '分類 B'] : [...new Set(selectedItems.map(i => i.cat))];
 
-            // Auto-calculate card width based on total count to ensure they fit
-            const count = selectedItems.length;
-            let dynamicWidth = 110;
-            if (count > 12) dynamicWidth = 90;
-            if (count > 20) dynamicWidth = 75;
-            if (count > 30) dynamicWidth = 60;
-            document.documentElement.style.setProperty('--card-width', dynamicWidth + 'px');
+            // Auto-size cards to fit
+            let autoWidth = 110;
+            if(selectedItems.length > 15) autoWidth = 85;
+            if(selectedItems.length > 25) autoWidth = 65;
+            document.documentElement.style.setProperty('--card-width', autoWidth + 'px');
 
             app.innerHTML = `
                 <div class="game-viewport">
-                    <div id="shuffled-box" class="h-[25%] border-4 border-dashed border-white rounded-3xl p-4 flex flex-wrap gap-3 justify-center bg-white/60 overflow-y-auto">
+                    <div id="shuffled-box" class="h-[28%] border-4 border-dashed border-white rounded-3xl p-4 flex flex-wrap gap-3 justify-center bg-white/70 overflow-y-auto">
                         ${shuffled.map((v) => `
-                            <div id="${v.id}" data-cat="${v.cat}" 
-                                 class="vocab-card shadow-lg draggable-item" 
-                                 onpointerdown="startDrag(event)">
-                                <img src="${v.path}" class="w-full pointer-events-none">
-                                <p>${v.name}</p>
+                            <div id="${v.id}" data-cat="${v.cat}" class="vocab-card shadow-lg" onpointerdown="startDrag(event)">
+                                <img src="${v.path}" class="w-full pointer-events-none"><p>${v.name}</p>
                             </div>
                         `).join('')}
                     </div>
-
-                    <div class="flex-1 flex gap-4 w-full overflow-x-auto pb-2 items-stretch">
+                    <div class="flex-1 flex gap-4 w-full overflow-x-auto pb-2 px-2 items-stretch">
                         ${zones.map((cat, idx) => `
-                            <div class="cat-box flex-1 min-w-[250px] drop-zone ${themeClasses[idx] || 'theme-orange'}" data-zone-cat="${cat}">
-                                <div class="cat-header pointer-events-none">
-                                    <span class="text-2xl font-black">${cat}</span>
-                                </div>
+                            <div class="cat-box flex-1 min-w-[260px] drop-zone ${themeClasses[idx] || 'theme-orange'}" data-zone-cat="${cat}">
+                                <div class="cat-header pointer-events-none"><span class="text-2xl font-black">${cat}</span></div>
                                 <div class="flex-1 p-3 flex flex-wrap gap-2 content-start justify-center slot-container pointer-events-none"></div>
                             </div>
                         `).join('')}
                     </div>
-
-                    <div class="h-14 flex justify-center gap-6 shrink-0 mb-2">
-                        <button onclick="setView('SELECT')" class="px-10 py-2 btn-gray btn-active rounded-full font-bold">返回</button>
+                    <div class="h-14 flex justify-center gap-6 shrink-0">
+                        <button onclick="setView('SELECT')" class="px-10 py-2 btn-gray btn-active rounded-full font-bold">退出</button>
                         ${gameMode === 'free' ? `<button onclick="finishGame()" class="px-12 py-2 btn-emerald btn-active rounded-full font-black">完成 ✨</button>` : ''}
                     </div>
                 </div>
             `;
         }
 
-        // --- Pointer-Based Drag Logic (Works for iPad & Mouse) ---
         let dragItem = null;
-        let offset = { x: 0, y: 0 };
+        let dragOffset = { x: 0, y: 0 };
 
         function startDrag(e) {
             dragItem = e.currentTarget;
             const rect = dragItem.getBoundingClientRect();
+            dragOffset.x = e.clientX - rect.left;
+            dragOffset.y = e.clientY - rect.top;
             
-            // Get touch/mouse offset
-            offset.x = e.clientX - rect.left;
-            offset.y = e.clientY - rect.top;
-
             dragItem.classList.add('dragging');
             dragItem.style.width = rect.width + 'px';
             dragItem.style.left = rect.left + 'px';
             dragItem.style.top = rect.top + 'px';
-
+            
             document.addEventListener('pointermove', moveDrag);
             document.addEventListener('pointerup', endDrag);
         }
 
         function moveDrag(e) {
-            if (!dragItem) return;
-            dragItem.style.left = (e.clientX - offset.x) + 'px';
-            dragItem.style.top = (e.clientY - offset.y) + 'px';
+            if(!dragItem) return;
+            dragItem.style.left = (e.clientX - dragOffset.x) + 'px';
+            dragItem.style.top = (e.clientY - dragOffset.y) + 'px';
         }
 
         function endDrag(e) {
-            if (!dragItem) return;
-
-            // Find drop zone under point
-            dragItem.hidden = true; // Hide temporarily to find what's underneath
-            const dropEl = document.elementFromPoint(e.clientX, e.clientY);
+            if(!dragItem) return;
+            dragItem.hidden = true;
+            const dropTarget = document.elementFromPoint(e.clientX, e.clientY);
             dragItem.hidden = false;
-
-            const zone = dropEl ? dropEl.closest('.drop-zone') : null;
-
-            if (zone) {
+            
+            const zone = dropTarget ? dropTarget.closest('.drop-zone') : null;
+            if(zone) {
                 const zoneCat = zone.getAttribute('data-zone-cat');
                 const itemCat = dragItem.getAttribute('data-cat');
-                const container = zone.querySelector('.slot-container');
                 const isCorrect = (gameMode === 'free' || itemCat === zoneCat);
-
-                // Feedback Star/Cross
+                
+                zone.querySelector('.slot-container').appendChild(dragItem);
+                
                 const feedback = document.createElement('div');
                 feedback.className = 'feedback-pop';
                 feedback.innerHTML = isCorrect ? '⭐' : '❌';
@@ -598,38 +332,27 @@
                 
                 sounds[isCorrect ? 'star' : 'wrong'].currentTime = 0;
                 sounds[isCorrect ? 'star' : 'wrong'].play();
-
-                container.appendChild(dragItem);
-                
-                // Final Check only on correct drop
-                if (gameMode === 'ordered') checkWin();
-
+                if(gameMode === 'ordered') checkWin();
             } else {
-                // Return to source if dropped outside
                 document.getElementById('shuffled-box').appendChild(dragItem);
             }
 
-            // Reset Styles
             dragItem.classList.remove('dragging');
             dragItem.style.position = 'relative';
             dragItem.style.left = 'auto';
             dragItem.style.top = 'auto';
-            
             dragItem = null;
             document.removeEventListener('pointermove', moveDrag);
             document.removeEventListener('pointerup', endDrag);
         }
 
         function checkWin() {
-            const remaining = document.getElementById('shuffled-box').children.length;
-            if (remaining > 0) return;
-
+            if (document.getElementById('shuffled-box').children.length > 0) return;
             const cards = document.querySelectorAll('.slot-container .vocab-card');
             let allCorrect = true;
             cards.forEach(card => { 
                 if (card.getAttribute('data-cat') !== card.closest('.cat-box').getAttribute('data-zone-cat')) allCorrect = false; 
             });
-
             if (allCorrect) finishGame();
         }
 
@@ -638,15 +361,13 @@
             sounds.hooray.play();
         }
 
-        // --- Standard Helpers ---
         function handleSizeChange(val) {
             document.documentElement.style.setProperty('--card-width', val + 'px');
         }
 
-        function selectAllInCat(cat) {
-            vocabList.filter(v => v.cat === cat).forEach(i => { if(!selectedItems.some(s=>s.id===i.id)) selectedItems.push(i); });
-            filterGrid(document.getElementById('searchInput').value);
-            document.getElementById('nextBtn').innerText = `下一步 (已選 ${selectedItems.length} 張)`;
+        function handleTextToggle(isVisible) {
+            const app = document.getElementById('app');
+            isVisible ? app.classList.remove('hide-text') : app.classList.add('hide-text');
         }
 
         function goNextFromSelect() {
@@ -658,7 +379,7 @@
             const app = document.getElementById('app');
             const canvas = await html2canvas(app, { scale: 2, useCORS: true });
             const link = document.createElement('a');
-            link.download = '分類結果.png';
+            link.download = '分類練習結果.png';
             link.href = canvas.toDataURL();
             link.click();
         }
