@@ -14,9 +14,33 @@
             --blue-dark: #0EA5E9; 
             --orange-dark: #EA580C;
         }
-        /* Fix scrolling: Allow vertical scroll but prevent horizontal bounce */
-        body { font-family: "PingFang HK", "Heiti TC", sans-serif; overflow-x: hidden; user-select: none; background-color: #f3f4f6; }
+
+        /* Enhanced selection prevention */
+        body { 
+            font-family: "PingFang HK", "Heiti TC", sans-serif; 
+            overflow-x: hidden; 
+            background-color: #f3f4f6;
+            
+            /* Disable selection across all browsers */
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            
+            /* Prevent long-press menus on mobile/tablets */
+            -webkit-touch-callout: none; 
+        }
         
+        /* Specifically stop images from being "ghost dragged" by the browser */
+        img {
+            -webkit-user-drag: none;
+            -khtml-user-drag: none;
+            -moz-user-drag: none;
+            -o-user-drag: none;
+            user-drag: none;
+            pointer-events: none; /* Already in your code, keeping for safety */
+        }
+
         .bg-park { background: url('images/park.jpg') center/cover fixed; }
         .bg-room { background: url('images/room.jpg') center/cover fixed; }
         .bg-road { background: url('images/road.jpg') center/cover fixed; }
@@ -47,10 +71,8 @@
         .hide-text p { display: none !important; }
         .hide-text .vocab-card { height: var(--card-width); justify-content: center; }
 
-        /* Game Layout Containers */
         .game-viewport { height: calc(100vh - 100px); display: flex; gap: 1rem; padding: 10px; }
         
-        /* Shuffle sidebar */
         .shuffle-sidebar { 
             width: 25%; 
             height: 100%; 
@@ -66,13 +88,11 @@
             justify-content: center; 
         }
 
-        /* Category boxes column */
         .target-column { flex: 1; height: 100%; display: flex; flex-direction: column; gap: 0.75rem; overflow-y: auto; }
 
-        /* Pinpoint 2: Horizontal Box Design */
         .cat-box-horizontal { 
             display: flex; 
-            flex-direction: row; /* Icon on left, content on right */
+            flex-direction: row; 
             border-radius: 20px; 
             overflow: hidden; 
             background: rgba(255,255,255,0.8); 
@@ -100,7 +120,7 @@
             flex-wrap: wrap; 
             gap: 10px; 
             align-content: flex-start; 
-            justify-content: flex-start; /* Pinpoint 3: Align left */
+            justify-content: flex-start; 
         }
 
         .theme-pink { border-color: #FB6764; } .theme-pink .cat-sidebar-title { background-color: #FB6764; }
@@ -417,7 +437,6 @@
         const categories = [...new Set(vocabList.map(item => item.cat))];
         const themeClasses = ['theme-pink', 'theme-blue', 'theme-green', 'theme-orange'];
 
-        // Initial view set to SUB_MODES to skip welcome page
         let view = 'SUB_MODES'; 
         let gameMode = ''; 
         let selectedItems = [];
@@ -496,7 +515,7 @@
 
         function renderCardHTML(v) {
             const active = selectedItems.some(i => i.id === v.id) ? 'selected-card' : '';
-            return `<div onclick="toggleItem('${v.id}')" class="vocab-card cursor-pointer ${active}"><img src="${v.path}" class="w-full pointer-events-none"><p>${v.name}</p></div>`;
+            return `<div onclick="toggleItem('${v.id}')" class="vocab-card cursor-pointer ${active}"><img src="${v.path}" class="w-full pointer-events-none" draggable="false"><p>${v.name}</p></div>`;
         }
 
         function renderPrepBoard(app) {
@@ -508,11 +527,11 @@
                         ${activeCats.map((cat, idx) => `
                             <div class="cat-box-horizontal w-full max-w-4xl ${themeClasses[idx % 4]}">
                                 <div class="cat-sidebar-title">
-                                    <img src="images/categories/${cat}.png" class="w-16 h-16 object-contain mb-2"> 
+                                    <img src="images/categories/${cat}.png" class="w-16 h-16 object-contain mb-2" draggable="false"> 
                                     <span class="text-2xl font-black">${cat}</span>
                                 </div>
                                 <div class="slot-container">
-                                    ${selectedItems.filter(i => i.cat === cat).map(i => `<div class="vocab-card shadow-sm border border-gray-100"><img src="${i.path}" class="w-full"><p>${i.name}</p></div>`).join('')}
+                                    ${selectedItems.filter(i => i.cat === cat).map(i => `<div class="vocab-card shadow-sm border border-gray-100"><img src="${i.path}" class="w-full" draggable="false"><p>${i.name}</p></div>`).join('')}
                                 </div>
                             </div>
                         `).join('')}
@@ -531,7 +550,7 @@
                     <div id="shuffled-box" class="shuffle-sidebar">
                         ${shuffled.map((v) => `
                             <div id="${v.id}" data-cat="${v.cat}" class="vocab-card shadow-xl cursor-grab relative z-10" draggable="true" ondragstart="handleStart(event, '${v.cat}')">
-                                <img src="${v.path}" class="w-full pointer-events-none"><p>${v.name}</p>
+                                <img src="${v.path}" class="w-full pointer-events-none" draggable="false"><p>${v.name}</p>
                             </div>
                         `).join('')}
                     </div>
@@ -542,7 +561,7 @@
                                 
                                 ${gameMode === 'ordered' ? `
                                 <div class="cat-sidebar-title">
-                                    <img src="images/categories/${cat}.png" class="w-14 h-14 object-contain">
+                                    <img src="images/categories/${cat}.png" class="w-14 h-14 object-contain" draggable="false">
                                     <span class="text-xl font-black">${cat}</span>
                                 </div>` : ''}
 
