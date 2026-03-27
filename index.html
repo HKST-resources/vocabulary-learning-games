@@ -417,7 +417,8 @@
         const categories = [...new Set(vocabList.map(item => item.cat))];
         const themeClasses = ['theme-pink', 'theme-blue', 'theme-green', 'theme-orange'];
 
-        let view = 'WELCOME';
+        // Initial view set to SUB_MODES to skip welcome page
+        let view = 'SUB_MODES'; 
         let gameMode = ''; 
         let selectedItems = [];
         const sounds = { star: new Audio('sounds/star.mp3'), wrong: new Audio('sounds/wrong.mp3'), hooray: new Audio('sounds/hooray.mp3') };
@@ -435,10 +436,7 @@
             const isTextHidden = !document.getElementById('showTextToggle')?.checked;
             app.className = "mt-16 " + (isTextHidden ? "hide-text" : "");
             
-            if (view === 'WELCOME') {
-                app.innerHTML = `<div class="flex h-[70vh] items-center justify-center text-3xl text-gray-400 font-bold">請選擇上方活動開始</div>`;
-            } 
-            else if (view === 'SUB_MODES') {
+            if (view === 'SUB_MODES') {
                 app.innerHTML = `
                 <div class="flex flex-col items-center justify-center gap-12 py-20">
                     <div class="flex gap-10">
@@ -453,7 +451,6 @@
         }
 
         function renderSelection(app) {
-            // Pinpoint 4: Ensure grid is scrollable by using px-4 and standard flow
             app.innerHTML = `
                 <div class="px-6 pb-20">
                     <div class="sticky top-14 z-40 bg-white/95 p-4 rounded-2xl mb-6 shadow-md flex justify-between items-center border border-gray-200">
@@ -527,7 +524,6 @@
 
         function renderGameStage(app) {
             const shuffled = [...selectedItems].sort(() => Math.random() - 0.5);
-            // Pinpoint 5: Labels for Free Sorting vs Ordered Sorting
             const zones = gameMode === 'free' ? ['分類 A', '分類 B'] : [...new Set(selectedItems.map(i => i.cat))];
 
             app.innerHTML = `
@@ -587,7 +583,6 @@
             const existing = el.querySelector('.feedback-pop');
             if(existing) existing.remove();
 
-            // Correct logic
             const isCorrect = (gameMode === 'free' || currentDragCat === zoneCat);
             const feedback = document.createElement('div');
             feedback.className = 'feedback-pop';
